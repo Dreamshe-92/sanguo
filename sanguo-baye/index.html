@@ -1,0 +1,1845 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>三国霸业 · 步步高学习机复刻版</title>
+<style>
+:root{
+  --bg:#d9cfae; --panel:#f2e9d0; --ink:#2b2118; --dim:#6b5a44;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+html,body{height:100%;}
+body{
+  background:radial-gradient(circle at 50% 30%, #4a4438, #241f19 70%);
+  font-family:"SimSun","宋体","Zpix",monospace;
+  color:var(--ink);
+  display:flex; align-items:center; justify-content:center;
+  user-select:none;
+}
+#app{
+  width:760px; max-width:98vw; height:640px; max-height:96vh;
+  background:var(--bg);
+  border:4px solid #4a3a26;
+  box-shadow:0 0 0 6px #8a6a44, 8px 10px 0 rgba(0,0,0,.5);
+  position:relative; overflow:hidden;
+}
+/* 黑白模式 */
+#app.mono{ --bg:#c8c8c0; --panel:#d8d8d0; --ink:#111; --dim:#555;
+  border-color:#111; box-shadow:0 0 0 6px #55554e, 8px 10px 0 rgba(0,0,0,.45);}
+#app.mono .avatar{filter:grayscale(1) contrast(1.3);}
+#app.mono .city-node .box{background:#fff;}
+#app.mono .city-node.player .box{background:#111; color:#fff;}
+#app.mono #mapwrap{background:#b9b9ae;}
+#app.mono .flag{filter:grayscale(1);}
+.avatar{border:1px solid #4a3a26; image-rendering:pixelated; vertical-align:middle; margin-right:3px; background:#fff;}
+.flag{height:4px; width:100%; margin-bottom:1px;}
+.screen{position:absolute; inset:0; display:none; overflow:auto; padding:10px;}
+.screen.active{display:block;}
+h1.title{
+  text-align:center; font-size:44px; letter-spacing:14px; margin:70px 0 8px;
+  font-weight:bold;
+  text-shadow:2px 2px 0 #99988e;
+}
+.subtitle{text-align:center; color:var(--dim); font-size:13px; letter-spacing:2px;}
+.frame{border:2px solid #111; background:var(--panel); padding:10px;}
+.menu-list{display:flex; flex-direction:column; gap:6px; margin-top:12px;}
+.btn{
+  border:2px solid #111; background:var(--panel); color:var(--ink);
+  font-family:inherit; font-size:15px; padding:5px 12px; cursor:pointer;
+  letter-spacing:2px; text-align:center;
+}
+.btn:hover{background:#111; color:#e8e8e0;}
+.btn:disabled{opacity:.4; cursor:default;}
+.btn.small{font-size:12px; padding:2px 8px; letter-spacing:1px;}
+.btn.danger{font-weight:bold;}
+.scen-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px;}
+.scen-card{border:2px solid #111; background:var(--panel); padding:10px; cursor:pointer;}
+.scen-card:hover{outline:3px solid #111;}
+.scen-card h3{font-size:20px; letter-spacing:6px; margin-bottom:6px;}
+.scen-card p{font-size:12px; color:var(--dim); line-height:1.6;}
+.fac-list{display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-top:10px;}
+.fac-card{border:2px solid #111; background:var(--panel); padding:6px 10px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;}
+.fac-card:hover{outline:3px solid #111;}
+.fac-card .diff{font-size:11px; color:var(--dim);}
+/* 主地图界面 */
+#topbar{
+  display:flex; justify-content:space-between; align-items:center;
+  border:2px solid #111; background:var(--panel); padding:4px 10px; font-size:13px;
+  margin-bottom:6px; flex-wrap:wrap; gap:4px;
+}
+#mapwrap{position:relative; border:2px solid #4a3a26;
+  background:linear-gradient(160deg,#dbe2b4 0%,#c8d29a 45%,#bccb8e 100%);
+  height:520px; overflow:hidden;}
+#app.mono #mapwrap{border-color:#111; background:#b9b9ae;}
+#stratmap{position:absolute; inset:0;}
+.city-node{
+  position:absolute; width:64px; text-align:center; cursor:pointer; z-index:2;
+  transform:translate(-50%,-50%); line-height:1.15;
+}
+.city-node .box{border:2px solid #111; padding:2px 1px; font-size:12px; font-weight:bold; background:#fff;}
+.city-node.player .box{background:#111; color:#fff;}
+.city-node.neutral .box{background:#9a9a90; color:#111;}
+.city-node .info{font-size:10px; color:#333; background:rgba(216,216,208,.85); margin-top:1px;}
+.city-node.selected .box{outline:3px solid #a00;}
+#sidepanel{
+  position:absolute; right:0; top:0; bottom:0; width:230px; z-index:5;
+  border-left:2px solid #111; background:var(--panel); padding:8px; overflow:auto; font-size:13px;
+}
+#sidepanel h4{border-bottom:2px solid #111; margin-bottom:6px; padding-bottom:2px; letter-spacing:2px;}
+.cmd-grid{display:grid; grid-template-columns:1fr 1fr; gap:5px; margin-top:6px;}
+.kv{display:flex; justify-content:space-between; padding:1px 0;}
+.gen-row{display:flex; justify-content:space-between; border-bottom:1px dashed #777; padding:2px 0; cursor:pointer; font-size:12px;}
+.gen-row:hover{background:#111; color:#fff;}
+.gen-row.dis{opacity:.45; pointer-events:none;}
+/* 城池界面 */
+#cityscreen .city-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+.two-col{display:flex; gap:8px; align-items:flex-start;}
+.col{flex:1;}
+.stat-table{width:100%; font-size:13px; border-collapse:collapse;}
+.stat-table td{border:1px solid #666; padding:2px 6px;}
+.list-box{border:2px solid #111; background:var(--panel); padding:6px; max-height:380px; overflow:auto;}
+.sec-title{font-size:14px; font-weight:bold; letter-spacing:3px; margin:8px 0 4px; border-left:6px solid #111; padding-left:6px;}
+.genline{display:flex; justify-content:space-between; gap:4px; border-bottom:1px dashed #888; padding:3px 0; font-size:12px;}
+.genline.sel{background:#111; color:#fff;}
+.tag{font-size:10px; border:1px solid currentColor; padding:0 3px; margin-left:3px;}
+#modal{
+  position:absolute; inset:0; background:rgba(20,20,20,.55); display:none;
+  align-items:center; justify-content:center; z-index:50;
+}
+#modal.active{display:flex;}
+#modalbox{
+  width:520px; max-width:92%; max-height:88%; overflow:auto;
+  background:var(--panel); border:3px solid #111; padding:12px; font-size:13px;
+}
+#modalbox h3{letter-spacing:3px; border-bottom:2px solid #111; padding-bottom:4px; margin-bottom:8px;}
+#modalbox .close-row{margin-top:10px; text-align:right;}
+#logbox{
+  position:absolute; left:0; right:0; bottom:0; height:110px; z-index:6;
+  border-top:2px solid #111; background:#e4e4dc; font-size:12px; padding:4px 8px; overflow:auto;
+  display:none;
+}
+#logbox.active{display:block;}
+#logbox div{border-bottom:1px dotted #aaa; padding:1px 0;}
+/* 战斗 */
+#battlescreen{padding:6px;}
+#battlehud{display:flex; justify-content:space-between; font-size:13px; border:2px solid #111; background:var(--panel); padding:3px 8px; margin-bottom:4px;}
+#battlecanvas{border:3px solid #111; background:#b9b9ae; display:block; margin:0 auto; cursor:pointer;}
+#battlecmd{display:flex; gap:6px; justify-content:center; margin-top:6px; flex-wrap:wrap;}
+#battlelog{height:88px; overflow:auto; border:2px solid #111; background:#e4e4dc; font-size:12px; padding:4px 8px; margin-top:6px;}
+#battlelog div{border-bottom:1px dotted #aaa; padding:1px 0;}
+.help-text{font-size:13px; line-height:1.9;}
+.help-text b{border-bottom:1px solid #111;}
+.rain-note{font-size:12px; color:var(--dim); margin-top:8px;}
+input[type=range]{width:100%;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- 标题 -->
+  <div class="screen active" id="scr-title">
+    <h1 class="title">三國霸業</h1>
+    <p class="subtitle">步步高学习机复刻版 · 网页重构 · v0.1</p>
+    <div class="menu-list" style="width:260px;margin:40px auto 0;">
+      <button class="btn" onclick="gotoScenarioSelect()">开始游戏</button>
+      <button class="btn" onclick="loadGame()" id="btn-load">读取存档</button>
+      <button class="btn" onclick="showHelp()">游戏说明</button>
+    </div>
+    <div id="title-gallery" style="display:flex;gap:12px;justify-content:center;margin-top:26px;"></div>
+    <p class="subtitle" style="margin-top:26px;">原作：步步高电子词典《三国霸业》（南方小鬼 / 通宵虫）<br>复刻版：38 城 · 147 将 · 战棋战斗 · 彩色像素 / 黑白 LCD 双画面</p>
+  </div>
+
+  <!-- 剧本选择 -->
+  <div class="screen" id="scr-scenario">
+    <h2 style="text-align:center;letter-spacing:8px;margin:14px 0;">选择时期</h2>
+    <div class="scen-grid" id="scenlist"></div>
+    <div style="text-align:center;margin-top:14px;"><button class="btn small" onclick="show('scr-title')">返回</button></div>
+  </div>
+
+  <!-- 君主选择 -->
+  <div class="screen" id="scr-ruler">
+    <h2 style="text-align:center;letter-spacing:8px;margin:14px 0;">选择君主 —— <span id="ruler-scen-name"></span></h2>
+    <p class="subtitle">强主易上手，弱主更具挑战（参照演义设定）</p>
+    <div class="fac-list" id="facclist" style="padding:0 30px;"></div>
+    <div style="text-align:center;margin-top:14px;"><button class="btn small" onclick="show('scr-scenario')">返回</button></div>
+  </div>
+
+  <!-- 主地图 -->
+  <div class="screen" id="scr-map" style="padding:8px;">
+    <div id="topbar">
+      <span id="tb-date"></span>
+      <span id="tb-lord"></span>
+      <span id="tb-res"></span>
+      <span id="tb-cnt"></span>
+      <span>
+        <button class="btn small" onclick="toggleLog()">情报</button>
+        <button class="btn small" onclick="endMonth()">结束本月 ▶</button>
+        <button class="btn small" onclick="toggleMono()" id="btn-mono">画面：彩色</button>
+        <button class="btn small" onclick="saveGame()">存档</button>
+        <button class="btn small" onclick="showHelp()">帮助</button>
+      </span>
+    </div>
+    <div id="mapwrap">
+      <div id="stratmap"></div>
+      <div id="sidepanel"></div>
+    </div>
+    <div id="logbox"></div>
+  </div>
+
+  <!-- 城池界面 -->
+  <div class="screen" id="scr-city"></div>
+
+  <!-- 战斗界面 -->
+  <div class="screen" id="battlescreen">
+    <div id="battlehud"></div>
+    <canvas id="battlecanvas" width="612" height="396"></canvas>
+    <div id="battlecmd"></div>
+    <div id="battlelog"></div>
+  </div>
+
+  <div id="modal"><div id="modalbox"></div></div>
+</div>
+
+<script>
+"use strict";
+/* ================================================================
+   三国霸业 · 网页复刻
+   数据来源：百度百科「步步高三国霸业」「电子词典三国霸业」词条、
+   pc6 页面、百度知道道具人物表。查证不到的数值标 [假设]。
+   ================================================================ */
+
+/* ---------------- 兵种 ---------------- */
+// 移动力/地形耗费取自百科原始表；攻防系数 [假设]
+const TROOP = {
+  "步":{name:"步兵", mp:3, range:1, atk:1.00, def:1.15,
+        cost:{plain:1,grass:1,mount:1,forest:1,river:3,base:2}},
+  "弓":{name:"弓兵", mp:3, range:2, atk:1.10, def:0.90,
+        cost:{plain:1,grass:1,mount:1,forest:1,river:3,base:2}},
+  "骑":{name:"骑兵", mp:4, range:1, atk:1.20, def:0.80,
+        cost:{plain:1,grass:1,mount:3,forest:3,river:3,base:2}},
+  "水":{name:"水兵", mp:4, range:1, atk:0.90, def:1.00,
+        cost:{plain:2,grass:2,mount:3,forest:3,river:1,base:2}},
+  "极":{name:"极兵", mp:5, range:1, atk:1.45, def:1.20,
+        cost:{plain:1,grass:1,mount:3,forest:3,river:3,base:2}},
+  "玄":{name:"玄兵", mp:2, range:1, atk:0.75, def:1.05,
+        cost:{plain:1,grass:1,mount:1,forest:1,river:2,base:2}}
+};
+/* ---------------- 地形 ---------------- */
+// id: 0平原 1草原 2山地 3森林 4河流 5村庄 6营寨 7城池
+const TERRAIN = [
+  {n:"平原", ch:"::", defMod:0.00, c:"#c7cf86", c2:"#b3bc70", dot:"#8f9a56"},
+  {n:"草原", ch:",,", defMod:0.00, c:"#a8cf7e", c2:"#93bd6a", dot:"#6f9a4e"},
+  {n:"山地", ch:"^^", defMod:0.30, bad:{步兵:1,弓兵:1}, mAtk:0.4, mDef:-0.7, c:"#a08a63", c2:"#8a7550", dot:"#5f4f36"},
+  {n:"森林", ch:"TT", defMod:0.15, bad:{步兵:1,弓兵:1}, mAtk:0.5, mDef:-0.6, c:"#5c9a54", c2:"#4a8443", dot:"#2f5c33"},
+  {n:"河流", ch:"~~", defMod:0.00, bad:{水兵:1}, mAtk:0.5, mDef:-0.5, c:"#5b9bd5", c2:"#4a86c0", dot:"#2f5f95"},
+  {n:"村庄", ch:"房", defMod:0.10, c:"#d9c48c", c2:"#c2ab74", dot:"#8a7550"},
+  {n:"营寨", ch:"寨", defMod:0.20, c:"#c08a55", c2:"#a87244", dot:"#6f4a2a"},
+  {n:"城池", ch:"城", defMod:0.50, c:"#b0b0b8", c2:"#94949c", dot:"#5c5c66"}
+];
+/* ---------------- 天气 ---------------- */
+const WEATHER = ["晴","阴","雨","大风","冰雹"];
+const WEATHER_FX = {
+  "晴":{tint:"rgba(255,240,180,0.06)", icon:"☀"},
+  "阴":{tint:"rgba(120,120,130,0.14)", icon:"☁"},
+  "雨":{tint:"rgba(60,110,190,0.18)", icon:"☂"},
+  "大风":{tint:"rgba(200,170,60,0.10)", icon:"≋"},
+  "冰雹":{tint:"rgba(200,220,240,0.16)", icon:"❄"}
+};
+/* ================= 像素美术 ================= */
+const PX = {
+  skin:["#f0c8a0","#e0b088","#c99568","#f5d8b8"],
+  hair:["#2b2118","#4a3524","#6b5140","#8a8a8a","#3a2a1a"],
+  armor:{ "步":"#4a6fa5", "弓":"#6f9a3e", "骑":"#a55b3a", "水":"#3e8a9a", "极":"#c9a227", "玄":"#7a4a9a" },
+  facColor:["#3a6ea5","#a53a3a","#3a8a5a","#8a6a2a","#6a3a8a","#2a7a8a","#8a3a6a","#5a5a5a",
+            "#7a5a2a","#2a5a2a","#8a4a2a","#4a4a7a","#6a2a4a","#2a4a6a","#7a2a2a","#4a6a2a"]
+};
+function hash32(s){ let h=2166136261; for(let i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return h>>>0; }
+// 程序化生成 Q 版像素头像（16×16 逻辑像素，scale 放大）
+const _avatarCache = {};
+function makeAvatar(name, force, intel, troop, lordIdx){
+  const key = name+"|"+force+"|"+intel+"|"+troop+"|"+(lordIdx>=0?lordIdx:"x");
+  if(_avatarCache[key]) return _avatarCache[key];
+  const S=16, sc=3;
+  const cv=document.createElement("canvas"); cv.width=S*sc; cv.height=S*sc;
+  const g=cv.getContext("2d"); g.imageSmoothingEnabled=false;
+  const h=hash32(name);
+  const px=(x,y,w,hh,col)=>{ g.fillStyle=col; g.fillRect(x*sc,y*sc,w*sc,hh*sc); };
+  const fac = PX.facColor[(lordIdx>=0? lordIdx : h) % PX.facColor.length];
+  // 背景
+  px(0,0,S,S, fac);
+  px(1,1,S-2,S-2, "#f2ead8");
+  // 肩甲/身体
+  const armor = PX.armor[troop] || "#666";
+  px(3,12,10,4, armor);
+  px(3,12,10,1, "#00000033");
+  px(4,11,8,1, armor);
+  // 脖子
+  px(7,10,2,2, PX.skin[h%4]);
+  // 头
+  px(4,4,8,7, PX.skin[h%4]);
+  px(3,5,1,5, PX.skin[h%4]); px(12,5,1,5, PX.skin[h%4]);
+  // 头发/头盔
+  if(force>=95){ // 武将头盔 + 红缨
+    px(4,3,8,2, "#8a8a94"); px(5,2,6,1, "#b0b0ba");
+    px(7,1,2,2, "#c93a3a"); px(6,2,1,1,"#c93a3a"); px(9,2,1,1,"#c93a3a");
+  } else if(intel>=90){ // 文官高冠 + 羽扇色
+    px(3,3,10,2, "#3a3a4a"); px(5,1,6,2, "#4a4a5c"); px(7,0,2,1,"#d9c86a");
+  } else {
+    const hc=PX.hair[h%PX.hair.length];
+    px(4,3,8,2, hc); px(4,3,1,4, hc); px(11,3,1,4, hc);
+  }
+  // 眼睛
+  px(5,7,1,1,"#20202a"); px(10,7,1,1,"#20202a");
+  // 眉毛（凶）
+  if(force>=85){ px(5,6,2,1,"#2b2118"); px(9,6,2,1,"#2b2118"); }
+  // 胡子
+  if(force>=88 || (h>>3)%4===0){
+    px(5,9,6,1,"#3a2a1a"); px(6,9,4,2,"#3a2a1a");
+  }
+  // 嘴
+  px(7,10,2,1,"#8a5a4a");
+  const url=cv.toDataURL();
+  _avatarCache[key]=url;
+  return url;
+}
+function avatarHTML(name, force, intel, troop, lordIdx, size){
+  return `<img class="avatar" src="${makeAvatar(name,force,intel,troop,lordIdx)}" style="width:${size}px;height:${size}px" alt="">`;
+}
+// 战斗单位像素小兵（画在 canvas 上，tile 内）
+function drawUnitSprite(g, px0, py0, ts, troop, side, name, f, i){
+  const u=ts/9; // 单位像素块
+  const P=(x,y,w,h,col)=>{ g.fillStyle=col; g.fillRect(px0+x*u, py0+y*u, w*u, h*u); };
+  const base = side===0?"#2c2c34":"#f0f0e8";
+  const armor = PX.armor[troop]||"#666";
+  // 影子
+  P(1.5,7,6,1,"#00000033");
+  // 腿
+  P(3,6,1,1.6,"#3a3a44"); P(5,6,1,1.6,"#3a3a44");
+  // 身体
+  P(2.5,3.2,4,3, armor);
+  P(2.5,3.2,4,0.8, side===0?"#1c1c24":"#ffffff");
+  // 头
+  P(3,1.8,3,1.8,"#f0c8a0");
+  // 兵种特征
+  if(troop==="骑"){ P(2,4.6,5,1.2,"#6b4a2a"); P(2.2,5.6,4.6,0.8,"#4a3020"); }
+  if(troop==="弓"){ P(6.2,2.6,0.8,3.4,"#8a6a3a"); P(6.2,2.4,0.8,0.6,"#d9d9c0"); }
+  if(troop==="水"){ P(1.5,5.6,6,1,"#3e6a9a"); P(2,4.4,5,1.2,"#5b9bd5"); }
+  if(troop==="极"){ P(1.2,2.2,0.8,4,"#e8c84a"); P(7,2.2,0.8,4,"#e8c84a"); }
+  if(troop==="玄"){ P(3,0.8,3,1.2,"#b07ae8"); P(2.6,2,3.8,0.6,"#b07ae8"); }
+  if(troop==="步"){ P(1.4,3.4,1,3,"#c9c9b0"); }
+  // 阵营描边
+  g.strokeStyle = side===0?"#101018":"#101018"; g.lineWidth=1;
+  g.strokeRect(px0+u*2.5, py0+u*1.8, u*4, u*4.4);
+}
+/* ---------------- 道具 ---------------- */
+const ITEMS = {
+  "青虹剑":{t:"武",v:12}, "倚天剑":{t:"武",v:11}, "七星刀":{t:"武",v:9},
+  "方天画戟":{t:"武",v:15}, "丈八蛇矛":{t:"武",v:13}, "青龙偃月刀":{t:"武",v:13},
+  "双股剑":{t:"武",v:8}, "双铁戟":{t:"武",v:6}, "三尖刀":{t:"武",v:7}, "古淀刀":{t:"武",v:6},
+  "孙子兵法":{t:"智",v:9}, "孙膑兵法":{t:"智",v:8}, "吴子兵法":{t:"智",v:7},
+  "六韬":{t:"智",v:7}, "三略":{t:"智",v:6}, "尉缭子":{t:"智",v:6},
+  "商君书":{t:"智",v:5}, "范蠡兵法":{t:"智",v:6}, "鬼谷子":{t:"智",v:9}, "墨子":{t:"智",v:6}, "司马法":{t:"智",v:5},
+  "赤兔马":{t:"移",v:2}, "的卢":{t:"移",v:1}, "爪黄飞电":{t:"移",v:1}, "绝影":{t:"移",v:1},
+  "惊帆":{t:"移",v:1}, "快航":{t:"移",v:1}, "白鸽":{t:"移",v:1}, "王追":{t:"移",v:1},
+  "铁骑兵符":{t:"符",v:"极"}, "太玄兵符":{t:"符",v:"玄"}, "水战兵符":{t:"符",v:"水"}
+};
+/* ---------------- 城池 ---------------- */
+const CITIES = [
+  ["xiangping","襄平",470,26,["beiping"]],
+  ["beiping","北平",400,66,["xiangping","nanpi"]],
+  ["nanpi","南皮",336,84,["beiping","pingyuan","ye"]],
+  ["pingyuan","平原",298,116,["nanpi","ye","beihai"]],
+  ["jinyang","晋阳",262,58,["ye","henei"]],
+  ["ye","邺",296,140,["jinyang","nanpi","pingyuan","henei","puyang"]],
+  ["henei","河内",244,152,["jinyang","ye","luoyang","puyang"]],
+  ["puyang","濮阳",330,168,["ye","henei","luoyang","xuchang"]],
+  ["beihai","北海",382,150,["pingyuan","poyang_x","xiaPi"]],
+  ["luoyang","洛阳",216,186,["henei","puyang","wancheng","changan","xuchang"]],
+  ["changan","长安",150,208,["luoyang","tianshui","anding","hanzhong","wancheng"]],
+  ["tianshui","天水",96,186,["xiliang","anding","changan"]],
+  ["xiliang","西凉",36,166,["tianshui","anding"]],
+  ["anding","安定",104,140,["xiliang","tianshui","changan"]],
+  ["hanzhong","汉中",136,264,["changan","chengdu","zitong","wancheng"]],
+  ["wancheng","宛城",248,222,["luoyang","changan","xuchang","xiangyang"]],
+  ["xuchang","许昌",282,200,["puyang","luoyang","wancheng","xiaopei","yongchun"]],
+  ["xiaopei","小沛",346,196,["xuchang","poyang_x","yongchun"]],
+  ["poyang_x","徐州",392,186,["xiaopei","beihai","yongchun","jianye","xiaPi"]],
+  ["xiaPi","下邳",408,140,["poyang_x","beihai","xiaopei"]],
+  ["yongchun","寿春",378,238,["xuchang","xiaopei","poyang_x","lujiang","jianye"]],
+  ["lujiang","庐江",352,282,["yongchun","jianye","chaiSang","jiangxia"]],
+  ["chaiSang","柴桑",322,322,["lujiang","jiangxia","changsha","wuy"]],
+  ["jianye","建业",420,258,["poyang_x","yongchun","lujiang","wuy"]],
+  ["wuy","吴",452,300,["jianye","kuaiji"]],
+  ["kuaiji","会稽",458,344,["wuy","chaiSang"]],
+  ["jiangxia","江夏",334,268,["xiangyang","lujiang","chaiSang","changsha"]],
+  ["xiangyang","襄阳",258,282,["wancheng","jiangxia","changsha","wuling","baJun"]],
+  ["changsha","长沙",296,352,["xiangyang","jiangxia","chaiSang","wuling","lingling","guiyang"]],
+  ["wuling","武陵",244,362,["xiangyang","changsha","lingling"]],
+  ["lingling","零陵",286,394,["wuling","changsha","guiyang"]],
+  ["guiyang","桂阳",338,384,["lingling","changsha","jianning"]],
+  ["chengdu","成都",118,362,["hanzhong","zitong","baJun","jianning","mianzhu"]],
+  ["zitong","梓潼",128,318,["hanzhong","chengdu","baJun","mianzhu"]],
+  ["mianzhu","棉竹",96,340,["chengdu","zitong","hanzhong"]],
+  ["baJun","巴郡",188,352,["zitong","chengdu","xiangyang","jianning"]],
+  ["jianning","建宁",178,428,["chengdu","baJun","guiyang","yunnan"]],
+  ["yunnan","云南",146,470,["jianning"]]
+];
+const CITY = {}; CITIES.forEach(c=>{ CITY[c[0]]={id:c[0],n:c[1],x:c[2],y:c[3],adj:c[4]}; });
+/* ---------------- 计谋 ---------------- */
+// name:{lv,mp,dmg,rng,cond}  cond: 山/林/雨/…
+const STRATAGEM = {
+  "火攻":{lv:1,mp:15,dmg:400,rng:3,banWeather:["雨","冰雹"],desc:"伤敌，雨天冰雹不可用"},
+  "滚木":{lv:6,mp:20,dmg:800,rng:2,needTerrain:[2,3],banWeather:["冰雹"],desc:"需在山地或森林"},
+  "落石":{lv:11,mp:25,dmg:1000,rng:2,needTerrain:[2],banWeather:["冰雹"],desc:"需在山地"},
+  "水淹":{lv:8,mp:20,dmg:800,rng:2,needWeather:["雨"],needNearRiver:true,desc:"雨天威力最大，需近河"},
+  "天变":{lv:12,mp:30,dmg:0,rng:0,troop:"玄",desc:"改变天气（玄兵专属）"}
+};
+
+/* ================= 剧本数据 ================= */
+// 武将条目：[名, 武, 智, 兵种, 等级]
+function F(lord, cities, gens){ return {lord, cities, gens}; }
+const SCENARIOS = [
+{
+  name:"董卓弄权", year:190, month:1, years:60,
+  desc:"189年末，董卓废立天子、把持朝政。关东诸侯蠢蠢欲动，乱世自此始。",
+  factions:[
+    F("董卓",["luoyang","changan","wancheng"],[["吕布",112,36,"极",3],["张辽",95,88,"骑",2],["华雄",92,38,"步",2],["李儒",28,98,"步",2],["李傕",78,42,"骑",1],["郭汜",76,40,"骑",1],["贾诩",30,106,"步",1],["樊稠",72,38,"步",1],["牛辅",68,32,"步",1]]),
+    F("袁绍",["nanpi","ye"],[["颜良",95,32,"骑",2],["文丑",94,30,"骑",2],["沮授",35,98,"步",2],["田丰",30,97,"步",2],["张郃",90,76,"步",1],["高览",86,60,"步",1],["许攸",35,88,"步",1],["审配",40,86,"步",1]]),
+    F("曹操",["puyang"],[["夏侯惇",90,70,"步",1],["夏侯渊",91,66,"骑",1],["曹仁",86,80,"步",1],["曹洪",80,60,"步",1],["乐进",84,66,"步",1],["荀彧",22,106,"步",2]]),
+    F("孙坚",["changsha"],[["程普",84,74,"水",1],["黄盖",82,70,"水",1],["韩当",82,64,"骑",1],["周泰",86,52,"水",1],["蒋钦",80,58,"水",1]]),
+    F("刘备",["pingyuan"],[["关羽",106,90,"步",2],["张飞",105,42,"骑",2],["简雍",30,82,"弓",1]]),
+    F("马腾",["xiliang","tianshui"],[["马超",104,70,"骑",1],["庞德",96,74,"步",1],["马岱",88,72,"骑",1]]),
+    F("公孙瓒",["beiping"],[["赵云",105,90,"骑",1],["公孙越",72,40,"骑",1],["严纲",76,50,"骑",1]]),
+    F("公孙度",["xiangping"],[["公孙康",70,55,"步",1],["阳仪",30,70,"步",1]]),
+    F("张杨",["jinyang"],[["杨丑",66,36,"步",1],["眭固",64,30,"步",1]]),
+    F("孔融",["beihai"],[["武安国",76,40,"步",1],["太史慈",98,70,"弓",1]]),
+    F("王匡",["henei"],[["韩浩",66,58,"步",1]]),
+    F("韩馥",["jinyang"].length?["nanpi"]:[], []), // 韩馥占南皮与袁绍重叠 → 调整
+    F("陶谦",["poyang_x"],[["曹豹",62,32,"步",1],["臧霸",82,58,"步",1]]),
+    F("袁术",["yongchun"],[["纪灵",84,42,"步",1],["桥蕤",70,34,"步",1],["杨弘",30,72,"步",1]]),
+    F("刘焉",["chengdu","zitong"],[["张任",88,74,"步",1],["严颜",86,68,"弓",1],["刘璝",70,44,"步",1],["法正",26,98,"步",1]]),
+    F("刘表",["xiangyang"],[["蔡瑁",62,72,"水",1],["张允",58,66,"水",1],["黄祖",66,44,"水",1],["蒯良",30,92,"步",1],["文聘",86,66,"步",1]])
+  ],
+  // 修正：韩馥南皮与袁绍冲突 → 韩馥改邺，袁绍让出邺
+  fix: s=>{ const hf=s.factions.find(f=>f.lord==="韩馥"); hf.cities=["nanpi"];
+        const ys=s.factions.find(f=>f.lord==="袁绍"); ys.cities=["pingyuan","ye"]; },
+  wild:{ // 在野武将 [名,武,智,兵种]
+    "beiping":[["赵云",105,90,"骑"]],
+    "xuchang":[["鲁肃",40,95,"步"],["诸葛瑾",32,88,"弓"]],
+    "luoyang":[["张昭",18,96,"步"],["程昱",36,100,"步"]],
+    "henei":[["廖化",74,58,"步"]],
+    "changsha":[["蒋钦",80,58,"水"]],
+    "chengdu":[["黄忠",100,68,"弓"],["刘璋",40,55,"步"]],
+    "yunnan":[["李严",78,80,"步"],["孟达",70,62,"步"]],
+    "wuling":[["高览",86,60,"步"]],
+    "kuaiji":[["周泰",86,52,"水"]],
+    "zhongyuan":[["杨修",30,90,"步"],["魏延",94,72,"步"],["王平",80,76,"步"]]
+  },
+  items:{
+    "beiping":["太玄兵符"], "jinyang":["鬼谷子"], "hanzhong":["尉缭子"],
+    "xuchang":["青虹剑","倚天剑"], "lujiang":["三略","惊帆"], "kuaiji":["绝影"],
+    "xiaopei":["六韬","墨子"], "lingling":["孙膑兵法","范蠡兵法"], "guiyang":["爪黄飞电","王追"],
+    "xiangyang":["双股剑"]
+  }
+},
+{
+  name:"曹操崛起", year:196, month:1, years:50,
+  desc:"196年，曹操迎奉天子、号令群雄。吕布窃据徐州，袁绍雄踞河北，孙氏已定江东。",
+  factions:[
+    F("曹操",["xuchang","luoyang","puyang","henei"],[["夏侯惇",90,70,"步",3],["夏侯渊",91,66,"骑",3],["曹仁",86,80,"步",3],["典韦",105,32,"步",3],["许褚",104,38,"步",3],["荀彧",22,106,"步",4],["程昱",36,100,"步",3],["于禁",87,80,"步",2],["徐晃",92,80,"步",2]]),
+    F("袁绍",["ye","nanpi","jinyang","pingyuan"],[["颜良",95,32,"骑",4],["文丑",94,30,"骑",4],["张郃",90,76,"步",2],["高览",86,60,"步",2],["沮授",35,98,"步",3],["田丰",30,97,"步",3],["审配",40,86,"步",2],["袁谭",62,58,"步",2]]),
+    F("吕布",["poyang_x","xiaopei"],[["张辽",95,88,"骑",3],["高顺",88,62,"步",3],["臧霸",82,58,"步",2],["陈宫",30,96,"步",3],["貂蝉",30,80,"弓",1]]),
+    F("刘备",["poyang_x2"],[["关羽",106,90,"步",3],["张飞",105,42,"骑",3],["赵云",105,90,"骑",2],["周仓",76,42,"步",1],["简雍",30,82,"弓",2]]),
+    F("孙策",["jianye","wuy","kuaiji"],[["周瑜",62,108,"弓",3],["太史慈",98,70,"弓",3],["甘宁",97,72,"水",2],["黄盖",82,70,"水",3],["程普",84,74,"水",3],["韩当",82,64,"骑",3],["周泰",86,52,"水",2],["张昭",18,96,"步",3],["鲁肃",40,95,"步",2]]),
+    F("刘表",["xiangyang","jiangxia"],[["蔡瑁",62,72,"水",3],["张允",58,66,"水",3],["黄祖",66,44,"水",3],["文聘",86,66,"步",2],["蒯良",30,92,"步",2]]),
+    F("刘焉",["chengdu","zitong","hanzhong"],[["张任",88,74,"步",2],["严颜",86,68,"弓",2],["法正",26,98,"步",1],["李严",78,80,"步",1]]),
+    F("马腾",["xiliang","tianshui","anding"],[["马超",104,70,"骑",2],["庞德",96,74,"步",2],["马岱",88,72,"骑",2],["韩遂",76,64,"骑",2]]),
+    F("袁术",["yongchun"],[["纪灵",84,42,"步",2],["杨弘",30,72,"步",2]]),
+    F("公孙瓒",["beiping"],[["赵云",105,90,"骑",1]]),
+    F("公孙度",["xiangping"],[["公孙康",70,55,"步",2]]),
+    F("孔融",["beihai"],[["太史慈",98,70,"弓",2],["武安国",76,40,"步",2]])
+  ],
+  fix: s=>{ const lb=s.factions.find(f=>f.lord==="吕布"); lb.cities=["poyang_x"];
+        const lb2=s.factions.find(f=>f.lord==="刘备"); lb2.cities=["xiaopei"]; },
+  wild:{
+    "xiaopei":[["阚泽",32,88,"弓"],["向朗",40,76,"步"]],
+    "beihai":[["鲁肃",40,95,"步"]],
+    "xiangyang":[["徐庶",40,104,"步"],["庞统",28,108,"弓"],["诸葛亮",40,110,"弓"]],
+    "changan":[["华佗",20,90,"步"]],
+    "xiliang":[["虞翻",38,86,"弓"]],
+    "baJun":[["丁奉",88,64,"步"]],
+    "zhongyuan":[["魏延",94,72,"步"],["费祎",30,94,"弓"]]
+  },
+  items:{
+    "henei":["七星刀"], "nanpi":["尉缭子"], "ye":["吴子兵法","商君书"],
+    "poyang_x":["鬼谷子","太玄兵符","惊帆"], "xiaopei":["司马法","王追"],
+    "jiangxia":["的卢"], "changsha":["快航"], "guiyang":["铁骑兵符"],
+    "zitong":["范蠡兵法"], "chengdu":["青囊书"], "lingling":["孙子兵法"],
+    "wan":["孙膑兵法"], "jianye":["水战兵符"], "lujiang":["六韬","墨子"]
+  }
+},
+{
+  name:"赤壁之战", year:208, month:7, years:40,
+  desc:"208年，曹操饮马长江、携八十三万之众。孙刘联盟危如累卵，天下悬于一战。",
+  factions:[
+    F("曹操",["ye","luoyang","xuchang","puyang","nanpi","yongchun","xiangyang","wancheng"],[["张辽",95,88,"骑",5],["徐晃",92,80,"步",5],["张郃",90,76,"步",4],["曹仁",86,80,"步",5],["夏侯惇",90,70,"步",5],["夏侯渊",91,66,"骑",5],["许褚",104,38,"步",5],["于禁",87,80,"步",4],["荀彧",22,106,"步",6],["荀攸",30,102,"步",4],["贾诩",30,106,"步",5],["程昱",36,100,"步",5],["蔡瑁",62,72,"水",4],["张允",58,66,"水",4]]),
+    F("孙权",["jianye","wuy","kuaiji","chaiSang","lujiang"],[["周瑜",62,108,"弓",6],["鲁肃",40,95,"步",4],["吕蒙",85,95,"水",3],["陆逊",50,104,"弓",2],["甘宁",97,72,"水",4],["太史慈",98,70,"弓",5],["黄盖",82,70,"水",5],["程普",84,74,"水",5],["韩当",82,64,"骑",5],["周泰",86,52,"水",4],["蒋钦",80,58,"水",4],["凌统",88,60,"水",3],["张昭",18,96,"步",5]]),
+    F("刘备",["jiangxia"],[["关羽",106,90,"步",6],["张飞",105,42,"骑",6],["赵云",105,90,"骑",5],["诸葛亮",40,110,"弓",5],["刘封",76,50,"步",1],["周仓",76,42,"步",2]]),
+    F("刘璋",["chengdu","zitong","baJun","jianning"],[["张任",88,74,"步",3],["严颜",86,68,"弓",3],["法正",26,98,"步",2],["李严",78,80,"步",2],["孟达",70,62,"步",2],["刘璋",40,55,"步",3]]),
+    F("马腾",["xiliang","tianshui","anding"],[["马超",104,70,"骑",4],["庞德",96,74,"步",4],["马岱",88,72,"骑",3],["韩遂",76,64,"骑",3]]),
+    F("公孙度",["xiangping"],[["公孙康",70,55,"步",3]]),
+    F("士燮",["jiaozhi"],[])
+  ],
+  fix: s=>{ s.factions = s.factions.filter(f=>f.lord!=="士燮"); },
+  wild:{
+    "hanzhong":[["吴子兵法藏",0,0,null]], // 占位忽略
+    "nanpi":[["马良",44,102,"弓"]],
+    "beihai":[["马谡",50,92,"弓"]],
+    "xiaopei":[["司马懿",26,108,"步"]],
+    "changan":[["诸葛均",30,72,"弓"]],
+    "puyang":[["司马懿",26,108,"步"],["杨怀",60,50,"步"]],
+    "wuling":[["七星刀藏",0,0,null]],
+    "chengdu":[["蒋琬",34,96,"步"],["王双",82,40,"步"]],
+    "zhongyuan":[["姜维",90,95,"骑"],["邓艾",85,100,"步"],["钟会",66,98,"步"]]
+  },
+  items:{
+    "xiaopei":["方天画戟"], "xuchang":["三尖刀","范蠡兵法"], "nanpi":["水战兵符"],
+    "xiangping":["孙子兵法","孙膑兵法","六韬","尉缭子"], "beihai":["太玄兵符"],
+    "anding":["惊帆"], "zitong":["双铁戟","铁骑兵符"], "wu":["三略"],
+    "chaiSang":["鬼谷子"], "lujiang":["古淀刀","商君书"], "yunnan":["司马法"]
+  }
+},
+{
+  name:"三国鼎立", year:229, month:1, years:30,
+  desc:"229年，曹丕称帝、刘备崩殂、孙权据江东。诸葛亮北伐在即，天下三分。 [注：229年刘禅已在位，此处从演义]",
+  factions:[
+    F("曹丕",["ye","luoyang","xuchang","puyang","nanpi","yongchun","xiangyang","wancheng","beiping"],[["司马懿",26,108,"步",7],["张辽",95,88,"骑",7],["徐晃",92,80,"步",7],["张郃",90,76,"步",6],["曹仁",86,80,"步",7],["曹洪",80,60,"步",6],["夏侯霸",84,58,"骑",3],["郝昭",80,72,"步",4],["钟会",66,98,"步",4],["邓艾",85,100,"步",5],["郭淮",80,78,"步",4]]),
+    F("刘禅",["chengdu","zitong","baJun","jianning","hanzhong"],[["诸葛亮",40,110,"弓",7],["赵云",105,90,"骑",7],["马超",104,70,"骑",6],["魏延",94,72,"步",6],["姜维",90,95,"骑",4],["关兴",86,66,"步",3],["张苞",88,50,"步",3],["王平",80,76,"步",4],["马岱",88,72,"骑",4],["蒋琬",34,96,"步",4],["费祎",30,94,"弓",3]]),
+    F("孙权",["jianye","wuy","kuaiji","chaiSang","lujiang","jiangxia"],[["陆逊",50,104,"弓",7],["吕蒙",85,95,"水",6],["甘宁",97,72,"水",6],["周泰",86,52,"水",6],["徐盛",82,72,"水",4],["丁奉",88,64,"步",5],["凌统",88,60,"水",5],["潘璋",76,54,"步",4],["张昭",18,96,"步",6],["诸葛瑾",32,88,"弓",5],["全琮",72,62,"水",3]]),
+    F("孟获",["yunnan"],[["孟优",76,36,"步",2],["兀突骨",90,20,"步",3],["祝融",82,50,"弓",3]]),
+    F("公孙渊",["xiangping"],[["公孙恭",62,52,"步",3]])
+  ],
+  wild:{
+    "tianshui":[["姜维",90,95,"骑"]],
+    "xiliang":[["高沛",70,50,"步"]],
+    "zhongyuan":[["王濬",78,86,"水"],["羊祜",76,94,"步"]]
+  },
+  items:{
+    "jiangxia":["铁骑兵符"], "beiping":["孙膑兵法"], "tianshui":["爪黄飞电"],
+    "xiaopei":["孙子兵法"], "chaiSang":["吴子兵法"], "nanpi":["水战兵符"],
+    "chengdu":["太玄兵符","鬼谷子","双铁戟","六韬"], "baJun":["三略","范蠡兵法"],
+    "zitong":["方天画戟"], "wuy":["惊帆","古淀刀"], "jianye":["双股剑","王追"]
+  }
+}
+];
+
+/* ---------------- 补充在野武将池 ----------------
+   取自原版 ROM 187 人名单中未被剧本直接收录者，随机散落各城供【搜索】发掘。
+   数值为按演义形象的 [假设] 值，待 playtest。格式：[名, 武, 智, 兵种] */
+const SUPP_GENS=[
+  ["祖茂",76,52,"步"],["俞涉",62,44,"步"],["陈兰",74,50,"步"],["雷薄",72,46,"步"],
+  ["侯选",70,44,"骑"],["程银",68,40,"骑"],["李堪",66,42,"骑"],["张横",70,38,"骑"],
+  ["梁兴",72,44,"骑"],["成宜",68,40,"骑"],["马玩",66,38,"骑"],["杨秋",74,58,"骑"],
+  ["陈圭",30,84,"步"],["陈登",40,92,"步"],["糜竺",34,86,"步"],["糜芳",58,44,"步"],
+  ["曹豹",60,34,"步"],["刘繇",52,66,"步"],["乔瑁",56,58,"步"],["袁遗",46,62,"步"],
+  ["董昭",36,88,"步"],["穆顺",64,36,"步"],["潘凤",78,32,"步"],["荀谌",34,90,"步"],
+  ["辛评",40,84,"步"],["关纯",38,80,"步"],["耿武",42,78,"步"],["方悦",70,40,"步"],
+  ["张超",54,60,"步"],["蒯良",24,92,"步"],["蒯越",30,90,"步"],["黄祖",64,42,"水"],
+  ["严颜",84,66,"弓"],["王门",62,40,"步"],["田楷",60,56,"步"],["张卫",58,52,"步"],
+  ["杨松",34,70,"步"],["杨任",72,48,"步"],["阎圃",32,88,"步"],["曹休",78,72,"骑"],
+  ["刘晔",34,96,"步"],["陈群",28,96,"步"],["陈武",80,54,"水"],["吕范",40,88,"水"],
+  ["董允",26,92,"步"],["马良",30,96,"步"],["马谡",62,88,"步"],["满宠",44,90,"步"],
+  ["关平",84,68,"步"],["王朗",30,86,"步"],["虞翻",36,88,"弓"],["华歆",28,86,"步"],
+  ["蒋琬",30,94,"步"],["文聘",82,64,"步"],["辛毗",32,86,"步"],["雷铜",74,50,"步"],
+  ["吴懿",76,66,"步"],["黄权",50,86,"步"],["杨修",22,94,"步"],["伊籍",32,88,"步"],
+  ["袁尚",60,52,"步"],["袁谭",58,54,"步"],["袁熙",54,50,"步"],["张纮",26,92,"弓"],
+  ["朱桓",78,70,"水"],["张绣",80,58,"骑"],["钟繇",36,90,"步"],["凌操",80,58,"水"],
+  ["臧霸",78,60,"步"],["王粲",24,88,"步"],["丁奉",80,62,"水"],["王威",66,58,"步"],
+  ["王修",36,84,"步"],["王累",40,82,"步"],["简雍",30,80,"弓"],["向朗",38,80,"步"],
+  ["阚泽",30,90,"水"],["高干",64,62,"步"],["王忠",60,44,"步"],["管辂",20,96,"步"],
+  ["华佗",16,92,"步"],["李肃",52,72,"步"],["侯成",62,40,"骑"],["牛辅",58,36,"骑"],
+  ["徐荣",76,52,"骑"],["王允",30,84,"步"],["淳于琼",68,36,"步"],["逢纪",32,86,"步"]
+];
+
+/* ================= 全局状态 ================= */
+let S = null;          // 游戏状态
+let curCity = null;    // 当前选中城池
+let battle = null;     // 战斗状态
+const GOLD_CAP=30000, GRAIN_CAP=65536;
+
+const $ = id=>document.getElementById(id);
+function show(id){ document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active")); $(id).classList.add("active"); }
+function rand(n){ return Math.floor(Math.random()*n); }
+function rnd(a,b){ return a+Math.random()*(b-a); }
+function pick(arr){ return arr[rand(arr.length)]; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function esc(s){ return String(s).replace(/</g,"&lt;"); }
+
+/* ================= 开局 ================= */
+let chosenScen = 0;
+function gotoScenarioSelect(){
+  const box=$("scenlist"); box.innerHTML="";
+  SCENARIOS.forEach((sc,i)=>{
+    const d=document.createElement("div"); d.className="scen-card";
+    d.innerHTML=`<h3>${sc.name}</h3><p>${sc.desc}</p><p style="margin-top:4px;">起始 ${sc.year}年${sc.month}月 · 限时 ${sc.years}年 · 势力 ${sc.factions.length} 家</p>`;
+    d.onclick=()=>{ chosenScen=i; buildRulerSelect(); show("scr-ruler"); };
+    box.appendChild(d);
+  });
+  show("scr-scenario");
+}
+function buildRulerSelect(){
+  const sc=SCENARIOS[chosenScen];
+  $("ruler-scen-name").textContent=sc.name;
+  const box=$("facclist"); box.innerHTML="";
+  sc.factions.forEach((f,fi)=>{
+    const nCity=f.cities.length, nGen=f.gens.length;
+    let diff = nCity>=3?"★ 易":(nCity===2?"★★ 中":"★★★ 难");
+    const d=document.createElement("div"); d.className="fac-card";
+    d.innerHTML=`<span>${f.lord}</span><span class="diff">${diff} · ${nCity}城 ${nGen}将</span>`;
+    d.onclick=()=>startGame(fi);
+    box.appendChild(d);
+  });
+}
+function startGame(fi){
+  const sc=SCENARIOS[fi===-1?chosenScen:chosenScen];
+  const s={scen:chosenScen, year:sc.year, month:sc.month, player:fi,
+    factions:[], gens:{}, cities:{}, gameover:false};
+  sc.factions.forEach((f,idx)=>{ s.factions.push({lord:f.lord, dead:false, captives:[]}); });
+  // 修正函数
+  if(sc.fix) sc.fix(sc);
+  sc.factions.forEach((f,idx)=>{
+    f.cities.forEach(cid=>{
+      s.cities[cid]={owner:idx, ag:40+rand(30), bu:40+rand(30), loy:60+rand(20),
+        df:50+rand(20), pop:150000+rand(150000), gold:800+rand(1500),
+        grain:2500+rand(3000), reserve:0, recon:false,
+        search:buildSearchList(sc,cid,idx)};
+    });
+    f.gens.forEach(g=>{
+      if(s.gens[g[0]]) return; // 同名武将不重复收录
+      s.gens[g[0]]={name:g[0], f0:g[1], i0:g[2], type:g[3], lv:g[4],
+        exp:0, hp:100, troop:Math.min(g[1]*10+g[2]*10+g[4]*100, 1200+g[4]*400),
+        loyal:80+rand(15), lord:idx, city:f.cities[0], items:[], acted:false, away:false};
+    });
+  });
+  // 未被占领城池 → 无主
+  CITIES.forEach(c=>{ if(!s.cities[c[0]]) s.cities[c[0]]={owner:-1, ag:30+rand(30), bu:30+rand(30),
+    loy:50+rand(20), df:30+rand(30), pop:80000+rand(120000), gold:400+rand(800),
+    grain:1200+rand(2000), reserve:0, recon:false, search:buildSearchList(sc,c[0],-1)}; });
+  // 在野武将
+  Object.entries(sc.wild||{}).forEach(([cid,list])=>{
+    if(!s.cities[cid]) return;
+    list.forEach(g=>{ if(g[1]>0 && !s.gens[g[0]]){
+      s.gens[g[0]]={name:g[0],f0:g[1],i0:g[2],type:g[3]||"步",lv:1,exp:0,hp:100,troop:0,
+        loyal:70+rand(10),lord:-2,city:cid,items:[],acted:false,away:false};
+    }});
+  });
+  // 散落原版补充武将（在野，供搜索发掘）
+  const allCityIds=Object.keys(s.cities).filter(c=>!c.startsWith("__"));
+  SUPP_GENS.forEach(g=>{
+    if(s.gens[g[0]]) return;
+    s.gens[g[0]]={name:g[0],f0:g[1],i0:g[2],type:g[3],lv:1,exp:0,hp:100,troop:0,
+      loyal:70+rand(10),lord:-2,city:pick(allCityIds),items:[],acted:false,away:false};
+  });
+  // 道具放城中（简化：道具直接挂在城池，搜索可得）
+  s.log=[];
+  S=s;
+  pushLog(`${sc.name}开场。你选择了 ${s.factions[fi].lord}。天下十三州，逐鹿中原！`);
+  show("scr-map"); renderMap(); renderSide(); renderTop();
+}
+function buildSearchList(sc,cid,ownerIdx){
+  const list=[];
+  (sc.wild&&sc.wild[cid]||[]).forEach(g=>{ if(g[1]>0) list.push({t:"g",n:g[0]}); });
+  (sc.items&&sc.items[cid]||[]).forEach(i=>{ if(ITEMS[i]) list.push({t:"i",n:i}); });
+  // 基础资金小发现
+  for(let k=0;k<2;k++) list.push({t:"g",n:"__gold"});
+  return list;
+}
+
+/* ================= 通用取值 ================= */
+function genItemBonus(g){
+  let f=0,i=0,mv=0; (g.items||[]).forEach(n=>{ const it=ITEMS[n]; if(!it)return;
+    if(it.t==="武")f+=it.v; if(it.t==="智")i+=it.v; if(it.t==="移")mv+=it.v; });
+  return {f,i,mv};
+}
+function gForce(g){ return g.f0+genItemBonus(g).f; }
+function gIntel(g){ return g.i0+genItemBonus(g).i; }
+function maxTroop(g){ return gForce(g)*10+gIntel(g)*10+g.lv*100; }
+function gensAt(cid,lord){ return Object.values(S.gens).filter(g=>g.city===cid && g.lord===lord && !g.away && !isPrisoner(g)); }
+function isPrisoner(g){ return g.lord>=0 && g.lord!==undefined && g.city==="__prison"+g.lord; }
+function playerFac(){ return S.factions[S.player]; }
+function allCitiesOf(fi){ return Object.keys(S.cities).filter(c=>S.cities[c].owner===fi); }
+function lordName(fi){ return fi<0?"无主":S.factions[fi].lord; }
+function cityGold(cid){ return S.cities[cid].gold; }
+
+/* ================= 主地图渲染 ================= */
+function renderTop(){
+  const fac=playerFac(), cities=allCitiesOf(S.player);
+  let gold=0,grain=0,ng=0;
+  cities.forEach(c=>{ gold+=S.cities[c].gold; grain+=S.cities[c].grain; ng+=gensAt(c,S.player).length; });
+  $("tb-date").textContent=`${S.year}年${S.month}月`;
+  $("tb-lord").textContent=`${fac.lord} 军`;
+  $("tb-res").textContent=`金 ${gold}｜粮 ${grain}`;
+  $("tb-cnt").textContent=`城 ${cities.length}｜将 ${ng}｜剩余${Math.max(0, SCENARIOS[S.scen].year+SCENARIOS[S.scen].years-S.year)}年`;
+}
+function renderMap(){
+  const box=$("stratmap"); box.innerHTML="";
+  // 连线
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg");
+  svg.setAttribute("style","position:absolute;inset:0;width:100%;height:100%;");
+  CITIES.forEach(c=>{
+    c[4].forEach(aid=>{
+      const a=CITY[aid]; if(a[2]<c[2]) return;
+      const l=document.createElementNS("http://www.w3.org/2000/svg","line");
+      l.setAttribute("x1",c[2]); l.setAttribute("y1",c[3]);
+      l.setAttribute("x2",a.x); l.setAttribute("y2",a.y);
+      l.setAttribute("stroke","#55554e"); l.setAttribute("stroke-width","2");
+      svg.appendChild(l);
+    });
+  });
+  box.appendChild(svg);
+  CITIES.forEach(c=>{
+    const cc=CITY[c[0]], st=S.cities[c[0]];
+    const d=document.createElement("div");
+    d.className="city-node"+(st.owner===S.player?" player":st.owner<0?" neutral":"");
+    d.id="cn-"+cc.id;
+    d.style.left=cc.x+"px"; d.style.top=cc.y+"px";
+    const facCol = st.owner>=0? PX.facColor[st.owner%PX.facColor.length] : "#8a8a8a";
+    const gs = st.owner>=0? gensAt(cc.id, st.owner) : [];
+    const av = gs.length? makeAvatar(gs[0].name, gForce(gs[0]), gIntel(gs[0]), gs[0].type, st.owner) : "";
+    d.innerHTML=`<div class="flag" style="background:${facCol}"></div>
+      <div class="box" style="border-color:${facCol}">${cc.n}</div>
+      <div class="info">${av?`<img class="avatar" src="${av}" style="width:14px;height:14px">`:""}${lordName(st.owner)}</div>`;
+    d.onclick=()=>selectCity(cc.id);
+    box.appendChild(d);
+  });
+}
+function selectCity(cid){
+  curCity=cid;
+  document.querySelectorAll(".city-node").forEach(n=>n.classList.remove("selected"));
+  const el=$("cn-"+cid); if(el) el.classList.add("selected");
+  renderSide();
+}
+function renderSide(){
+  const p=$("sidepanel"); if(!curCity){ p.innerHTML="<p>点击城池查看</p>"; return; }
+  const st=S.cities[curCity], c=CITY[curCity], mine=st.owner===S.player;
+  let html=`<h4>${c.n} · ${lordName(st.owner)}</h4>`;
+  if(mine){
+    html+=`<div class="kv"><span>农业</span><span>${st.ag}</span></div>
+      <div class="kv"><span>商业</span><span>${st.bu}</span></div>
+      <div class="kv"><span>民忠</span><span>${st.loy}</span></div>
+      <div class="kv"><span>防灾</span><span>${st.df}</span></div>
+      <div class="kv"><span>人口</span><span>${st.pop}</span></div>
+      <div class="kv"><span>金钱</span><span>${st.gold}</span></div>
+      <div class="kv"><span>粮草</span><span>${st.grain}</span></div>
+      <div class="kv"><span>预备役</span><span>${st.reserve}</span></div>`;
+    const gs=gensAt(curCity,S.player);
+    html+=`<div style="margin-top:6px;border-top:2px solid #111;padding-top:4px;">将领 ${gs.length} 名（点击见详情）</div>`;
+    gs.forEach(g=>{ html+=`<div class="gen-row ${g.acted?'dis':''}" onclick="genDetail('${g.name}')">
+      <span>${avatarHTML(g.name,gForce(g),gIntel(g),g.type,g.lord,16)}${g.name} ${g.acted?"✔":""}</span><span>武${gForce(g)} 智${gIntel(g)} 兵${g.troop}</span></div>`; });
+    html+=`<div class="cmd-grid">
+      <button class="btn small" onclick="cityScreen('${curCity}')">进入城池 ▶</button>
+      <button class="btn small" onclick="recon('${curCity}')">侦察</button>
+    </div>`;
+  }else{
+    if(st.recon || st.owner<0){
+      html+=`<div class="kv"><span>农业</span><span>${st.ag}</span></div>
+        <div class="kv"><span>商业</span><span>${st.bu}</span></div>
+        <div class="kv"><span>民忠</span><span>${st.loy}</span></div>
+        <div class="kv"><span>守军</span><span>${gensAt(curCity,st.owner>=0?st.owner:-1).reduce((a,g)=>a+g.troop,0)+(st.reserve)}</span></div>`;
+    }else html+="<p>（未侦察，先派将领执行侦察）</p>";
+    const mineAdj = c.adj.some(a=>S.cities[a].owner===S.player);
+    if(mineAdj){
+      const from=c.adj.filter(a=>S.cities[a].owner===S.player)[0];
+      html+=`<div class="cmd-grid"><button class="btn small" onclick="startExpedition('${from}','${curCity}')">出征此城</button></div>`;
+    }
+  }
+  p.innerHTML=html;
+}
+function recon(cid){
+  const c=CITY[cid]; const from=c.adj.find(a=>S.cities[a].owner===S.player);
+  const gs=gensAt(from,S.player).filter(g=>!g.acted);
+  if(!gs.length){ alert("该相邻城无可行动将领"); return; }
+  chooseGen(gs,"选择执行侦察的将领（耗体力10）",g=>{ g.hp=Math.max(0,g.hp-10); g.acted=true;
+    S.cities[cid].recon=true; pushLog(`${g.name} 侦察了 ${CITY[cid].n}。`); renderSide(); });
+}
+function toggleMono(){
+  const app=$("app"); app.classList.toggle("mono");
+  $("btn-mono").textContent = app.classList.contains("mono")?"画面：黑白":"画面：彩色";
+  if(battle&&!battle.over) renderBattle();
+}
+function toggleLog(){ $("logbox").classList.toggle("active"); renderLog(); }
+function renderLog(){ const b=$("logbox");
+  b.innerHTML=S.log.slice(-40).map(l=>`<div>${esc(l)}</div>`).join(""); b.scrollTop=1e6; }
+function pushLog(t){ if(!S)return; S.log.push(`【${S.year}年${S.month}月】${t}`); if($("logbox").classList.contains("active"))renderLog(); }
+
+/* ================= 城池界面 ================= */
+function cityScreen(cid){
+  const st=S.cities[cid], c=CITY[cid];
+  const gs=gensAt(cid,S.player);
+  const prisoners=playerFac().captives;
+  let html=`<div class="city-head">
+    <h2 style="letter-spacing:6px;">${avatarHTML(st.owner>=0?(gensAt(cid,st.owner)[0]||{name:lordName(st.owner)}).name:lordName(st.owner),0,0,"步",st.owner,24)}${c.n} —— 内政（${lordName(st.owner)}）</h2>
+    <div><button class="btn small" onclick="backMap()">返回地图</button></div></div>
+  <div class="two-col">
+    <div class="col" style="max-width:250px;">
+      <div class="frame">
+        <div class="kv"><span>农业</span><span>${st.ag}</span></div>
+        <div class="kv"><span>商业</span><span>${st.bu}</span></div>
+        <div class="kv"><span>民忠</span><span>${st.loy}</span></div>
+        <div class="kv"><span>防灾</span><span>${st.df}</span></div>
+        <div class="kv"><span>人口</span><span>${st.pop}</span></div>
+        <div class="kv"><span>金钱</span><span>${st.gold}</span></div>
+        <div class="kv"><span>粮草</span><span>${st.grain}</span></div>
+        <div class="kv"><span>预备役</span><span>${st.reserve}</span></div>
+      </div>
+      <div class="sec-title">本城将领</div>
+      <div class="list-box" id="citygenlist"></div>
+      <div class="sec-title">俘虏</div>
+      <div class="list-box" style="max-height:90px;">
+        ${prisoners.length?prisoners.map(n=>{const g=S.gens[n];
+          return `<div class="genline" onclick="genDetail('${n}',true)"><span>${g?avatarHTML(g.name,gForce(g),gIntel(g),g.type,g.lord,18):""}${n}</span><span>俘虏</span></div>`;}).join(""):"<span class='tag'>无</span>"}
+      </div>
+    </div>
+    <div class="col">
+      <div class="sec-title">内政</div>
+      <div class="cmd-grid">
+        <button class="btn small" onclick="cmdKaiKen()">开垦</button>
+        <button class="btn small" onclick="cmdZhaoShang()">招商</button>
+        <button class="btn small" onclick="cmdSouSuo()">搜索</button>
+        <button class="btn small" onclick="cmdZhiLi()">治理</button>
+        <button class="btn small" onclick="cmdChuXun()">出巡</button>
+      </div>
+      <div class="sec-title">军备</div>
+      <div class="cmd-grid">
+        <button class="btn small" onclick="cmdZhengBing()">征兵</button>
+        <button class="btn small" onclick="cmdFenPei()">分配</button>
+        <button class="btn small" onclick="cmdLveDuo()">掠夺</button>
+        <button class="btn small" onclick="cmdChuZheng()">出征</button>
+      </div>
+      <div class="sec-title">外交</div>
+      <div class="cmd-grid">
+        <button class="btn small" onclick="cmdLiJian()">离间</button>
+        <button class="btn small" onclick="cmdZhaoLan()">招揽</button>
+        <button class="btn small" onclick="cmdCeFan()">策反</button>
+        <button class="btn small" onclick="cmdQuanXiang()">劝降</button>
+      </div>
+      <div class="sec-title">其他</div>
+      <div class="cmd-grid">
+        <button class="btn small" onclick="cmdYanQing()">宴请</button>
+        <button class="btn small" onclick="cmdShangCi()">赏赐</button>
+        <button class="btn small" onclick="cmdMeiShou()">没收</button>
+        <button class="btn small" onclick="cmdJiaoYi()">交易</button>
+        <button class="btn small" onclick="cmdShuSong()">输送</button>
+        <button class="btn small" onclick="cmdYiDong()">移动</button>
+        <button class="btn small" onclick="cmdZhaoXiang()">招降</button>
+        <button class="btn small" onclick="cmdChuZhan()">处斩</button>
+        <button class="btn small" onclick="cmdLiuFang()">流放</button>
+      </div>
+    </div>
+  </div>`;
+  $("scr-city").innerHTML=html;
+  renderCityGens(cid);
+  show("scr-city");
+}
+function backMap(){ show("scr-map"); renderMap(); renderSide(); renderTop(); }
+function renderCityGens(cid){
+  const box=$("citygenlist"); if(!box)return;
+  const gs=gensAt(cid,S.player);
+  box.innerHTML=gs.map(g=>`<div class="genline ${g.acted?'dis':''}" onclick="genDetail('${g.name}')">
+    <span>${avatarHTML(g.name,gForce(g),gIntel(g),g.type,g.lord,20)}${g.name}${g.acted?" ✔":""}<span class="tag">${TROOP[g.type].name}</span>${g.items.map(i=>`<span class="tag">${i}</span>`).join("")}</span>
+    <span>武${gForce(g)} 智${gIntel(g)} Lv${g.lv} 兵${g.troop} 忠${g.loyal} 体${g.hp}</span></div>`).join("")
+    ||"<span class='tag'>（空城无将）</span>";
+}
+function chooseGen(gs,title,cb){
+  openModal(title, `<div id="picklist">${gs.map(g=>`<div class="gen-row" data-n="${g.name}">
+      <span>${avatarHTML(g.name,gForce(g),gIntel(g),g.type,g.lord,18)}${g.name} Lv${g.lv} ${TROOP[g.type].name}</span><span>体${g.hp} 兵${g.troop}</span></div>`).join("")}</div>
+    <div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+  document.querySelectorAll("#picklist .gen-row").forEach(r=>r.onclick=()=>{ closeModal(); cb(S.gens[r.dataset.n]); });
+}
+
+/* -------- 内政 -------- */
+function actCost(g,hp){ if(g.hp<hp){ alert(`${g.name} 体力不足（需${hp}）`); return false; } return true; }
+function spend(g,hp,gold,cid){
+  g.hp-=hp; g.acted=true;
+  if(gold && cid) S.cities[cid].gold=Math.max(0,S.cities[cid].gold-gold);
+}
+function cmdKaiKen(){ const gs=freeGens(curCity); chooseGen(gs,"开垦：提高农业（耗体力20，金200）",g=>{
+  if(!actCost(g,20))return;
+  const gain=2+Math.floor(gIntel(g)/25)+rand(3);
+  S.cities[curCity].ag=Math.min(100,S.cities[curCity].ag+gain);
+  spend(g,20,200,curCity);
+  pushLog(`${g.name} 在 ${CITY[curCity].n} 开垦，农业+${gain}。`);
+  refreshCity(); });}
+function cmdZhaoShang(){ const gs=freeGens(curCity); chooseGen(gs,"招商：提高商业（耗体力20，金200）",g=>{
+  if(!actCost(g,20))return;
+  const gain=2+Math.floor(gIntel(g)/25)+rand(3);
+  S.cities[curCity].bu=Math.min(100,S.cities[curCity].bu+gain);
+  spend(g,20,200,curCity);
+  pushLog(`${g.name} 在 ${CITY[curCity].n} 招商，商业+${gain}。`);
+  refreshCity(); });}
+function cmdZhiLi(){ const gs=freeGens(curCity); chooseGen(gs,"治理：防灾+4（上限100，耗体力15）",g=>{
+  if(!actCost(g,15))return;
+  S.cities[curCity].df=Math.min(100,S.cities[curCity].df+4);
+  spend(g,15,0,null);
+  pushLog(`${g.name} 治理 ${CITY[curCity].n}，防灾+4。`);
+  refreshCity(); });}
+function cmdChuXun(){ const gs=freeGens(curCity); chooseGen(gs,"出巡：民忠+4（上限100，耗体力15）",g=>{
+  if(!actCost(g,15))return;
+  S.cities[curCity].loy=Math.min(100,S.cities[curCity].loy+4);
+  spend(g,15,0,null);
+  pushLog(`${g.name} 出巡 ${CITY[curCity].n}，民忠+4。`);
+  refreshCity(); });}
+function cmdSouSuo(){ const gs=freeGens(curCity); chooseGen(gs,"搜索：寻找在野武将与道具（耗体力20）",g=>{
+  if(!actCost(g,20))return;
+  spend(g,20,0,null);
+  const list=S.cities[curCity].search;
+  const wildHere=Object.values(S.gens).filter(x=>x.lord===-2&&x.city===curCity);
+  if(!list.length && wildHere.length && Math.random()<0.55){
+    // 剧本表已搜空 → 发掘本城在野武将（补充武将池）
+    const w=pick(wildHere);
+    w.lord=S.player; w.loyal=55+rand(20); w.acted=false;
+    pushLog(`${g.name} 在 ${CITY[curCity].n} 访得在野之士 ${w.name}（武${gForce(w)} 智${gIntel(w)}），其欣然来投！`);
+    refreshCity(); return;
+  }
+  if(list.length && Math.random()<0.7){
+    const idx=rand(list.length), found=list.splice(idx,1)[0];
+    if(found.t==="i"){
+      if(g.items.length<3){ g.items.push(found.n); pushLog(`${g.name} 在 ${CITY[curCity].n} 搜索到【${found.n}】，已装备！`); }
+      else { pushLog(`${g.name} 搜索到【${found.n}】，但 ${g.name} 道具已满，弃之。`); }
+    }else if(found.n==="__gold"){
+      const amt=200+rand(400); S.cities[curCity].gold+=amt;
+      pushLog(`${g.name} 搜索到隐藏金库，金+${amt}。`);
+    }else{
+      const w=S.gens[found.n];
+      if(w && w.lord===-2){ w.lord=S.player; w.city=curCity; w.loyal=60+rand(20);
+        pushLog(`${g.name} 寻得在野武将 ${found.n}，其归顺！`); }
+      else pushLog(`${g.name} 一无所获。`);
+    }
+  } else pushLog(`${g.name} 在 ${CITY[curCity].n} 搜索，一无所获。`);
+  refreshCity(); });}
+function freeGens(cid){ return gensAt(cid,S.player).filter(g=>!g.acted); }
+function refreshCity(){ if($("scr-city").classList.contains("active")) cityScreen(curCity); else {renderSide();renderTop();} renderTop(); }
+
+/* -------- 军备 -------- */
+function cmdZhengBing(){
+  const st=S.cities[curCity], gs=freeGens(curCity);
+  const n=Math.floor(st.loy*20), cost=n*2;
+  openModal("征兵",`<p>民忠${st.loy} → 可征 ${n} 兵，耗金 ${cost}，民忠-2。</p>
+    <div class="close-row"><button class="btn small" onclick="doZhengBing()">征兵</button>
+    <button class="btn small" onclick="closeModal()">取消</button></div>`);
+  window._zb={n,cost};
+}
+function doZhengBing(){
+  const {n,cost}=window._zb; const st=S.cities[curCity];
+  const gs=freeGens(curCity).sort((a,b)=>gIntel(b)-gIntel(a));
+  if(!gs.length){ closeModal(); return; }
+  if(st.gold<cost){ alert("金钱不足"); closeModal(); return; }
+  if(n<=0){ alert("民忠过低"); closeModal(); return; }
+  st.gold-=cost; st.reserve+=n; st.loy=Math.max(0,st.loy-2);
+  gs[0].hp=Math.max(0,gs[0].hp-20); gs[0].acted=true;
+  pushLog(`${CITY[curCity].n} 征兵 ${n}（预备役 ${st.reserve}）。`);
+  closeModal(); refreshCity();
+}
+function cmdFenPei(){
+  const st=S.cities[curCity];
+  if(st.reserve<=0){ alert("无预备役兵"); return; }
+  const gs=gensAt(curCity,S.player).filter(g=>g.troop<maxTroop(g));
+  if(!gs.length){ alert("无可分兵将领"); return; }
+  openModal(`分配预备役（现有 ${st.reserve}）`,gs.map(g=>`<div class="gen-row" onclick="fenpeiTo('${g.name}')">
+    <span>${g.name}</span><span>兵 ${g.troop}/${maxTroop(g)}</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">关闭</button></div>`);
+}
+function fenpeiTo(name){
+  const st=S.cities[curCity], g=S.gens[name];
+  const cap=maxTroop(g)-g.troop, n=Math.min(cap,st.reserve,1500); // 单次上限1500 [假设]
+  g.troop+=n; st.reserve-=n; g.acted=true;
+  pushLog(`${g.name} 获得 ${n} 兵（${g.troop}/${maxTroop(g)}）。`);
+  closeModal(); refreshCity();
+}
+function cmdLveDuo(){
+  const gs=freeGens(curCity); const st=S.cities[curCity];
+  openModal("掠夺",`<p>掠夺本城金钱粮草各30%，民忠减半，农业商业-15。确定？</p>
+  <div class="close-row"><button class="btn small danger" onclick="doLveDuo()">掠夺</button>
+  <button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doLveDuo(){
+  const st=S.cities[curCity]; const gs=freeGens(curCity);
+  const gg=Math.floor(st.gold*0.3), gr=Math.floor(st.grain*0.3);
+  st.gold-=gg; st.grain-=gr; st.loy=Math.floor(st.loy/2);
+  st.ag=Math.max(0,st.ag-15); st.bu=Math.max(0,st.bu-15);
+  if(gs.length){ gs[0].hp=Math.max(0,gs[0].hp-20); gs[0].acted=true; }
+  pushLog(`${CITY[curCity].n} 遭掠夺：金-${gg} 粮-${gr}，民怨沸腾。`);
+  closeModal(); refreshCity();
+}
+/* -------- 外交 -------- */
+function enemyGensNear(){
+  // 对当前城的相邻敌城将领（简化：以当前城为外交据点，目标敌城任选）
+  return null;
+}
+function pickEnemyCity(title,cb){
+  const adj=CITY[curCity].adj.filter(a=>S.cities[a].owner>=0 && S.cities[a].owner!==S.player);
+  if(!adj.length){ alert("相邻无敌方城池"); return; }
+  openModal(title,adj.map(a=>`<div class="gen-row" onclick="_ec('${a}')"><span>${CITY[a].n}（${lordName(S.cities[a].owner)}）</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+  window._ecCb=cb;
+}
+function _ec(a){ closeModal(); window._ecCb(a); }
+function cmdLiJian(){
+  pickEnemyCity("离间：降低敌将忠诚（耗金200，需执行将领）",cid=>{
+    const gs=freeGens(curCity); chooseGen(gs,"选执行者（智力影响效果）",g=>{
+      if(S.cities[curCity].gold<200){alert("金不足");return;}
+      const target=GpickEnemyGen(cid); if(!target){alert("敌城无将");return;}
+      S.cities[curCity].gold-=200; g.acted=true; g.hp=Math.max(0,g.hp-10);
+      const cut=8+Math.floor(gIntel(g)/12)+rand(6);
+      target.loyal=Math.max(0,target.loyal-cut);
+      pushLog(`${g.name} 离间 ${target.name}，其忠诚-${cut}。`);
+      refreshCity();
+    });
+  });
+}
+function cmdZhaoLan(){
+  pickEnemyCity("招揽：忠诚<60的敌将可能跳槽（耗金500）",cid=>{
+    const gs=freeGens(curCity); chooseGen(gs,"选说客（智力影响成功率）",g=>{
+      if(S.cities[curCity].gold<500){alert("金不足");return;}
+      const target=GpickEnemyGen(cid); if(!target){alert("敌城无将");return;}
+      S.cities[curCity].gold-=500; g.acted=true; g.hp=Math.max(0,g.hp-10);
+      let p=clamp(70-target.loyal+(gIntel(g)-gIntel(target))/10,2,70);
+      if(Math.random()*100<p){
+        target.lord=S.player; target.city=curCity; target.loyal=55+rand(15); target.acted=false;
+        pushLog(`成功！${target.name} 弃暗投明，来投 ${CITY[curCity].n}！`);
+      } else pushLog(`${g.name} 游说 ${target.name} 失败。`);
+      refreshCity();
+    });
+  });
+}
+function cmdCeFan(){
+  pickEnemyCity("策反：忠诚<50敌将下野（耗金300）",cid=>{
+    const gs=freeGens(curCity); chooseGen(gs,"选执行者",g=>{
+      if(S.cities[curCity].gold<300){alert("金不足");return;}
+      const target=GpickEnemyGen(cid); if(!target){alert("敌城无将");return;}
+      S.cities[curCity].gold-=300; g.acted=true; g.hp=Math.max(0,g.hp-10);
+      let p=clamp(60-target.loyal,2,55);
+      if(Math.random()*100<p){
+        target.lord=-2; target.acted=false;
+        pushLog(`${target.name} 被策反，弃官而去（成在野）。`);
+      } else pushLog(`策反 ${target.name} 失败。`);
+      refreshCity();
+    });
+  });
+}
+function cmdQuanXiang(){
+  // 目标：相邻任意敌方势力整体
+  const adj=CITY[curCity].adj.map(a=>S.cities[a].owner).filter(o=>o>=0&&o!==S.player);
+  if(!adj.length){ alert("相邻无敌势力"); return; }
+  const fi=adj[0];
+  const myPow=powerOf(S.player), enPow=powerOf(fi);
+  if(myPow<enPow*2){ alert("实力不足以威慑对方（需2倍于敌）"); return; }
+  if(Math.random()*100<45){
+    // 吞并
+    allCitiesOf(fi).forEach(c=>{ S.cities[c].owner=S.player; S.cities[c].recon=true; });
+    Object.values(S.gens).forEach(g=>{ if(g.lord===fi){ g.lord=S.player; g.loyal=50+rand(20); g.acted=false; } });
+    S.factions[fi].dead=true;
+    pushLog(`兵威之下，${S.factions[fi].lord} 举城归降！不战而屈人之兵！`);
+  } else pushLog(`劝降 ${S.factions[fi].lord} 被拒。`);
+  renderMap(); renderSide(); renderTop(); checkEnd();
+}
+function GpickEnemyGen(cid){
+  const own=S.cities[cid].owner;
+  const gs=gensAt(cid,own);
+  return gs.length?pick(gs):null;
+}
+function powerOf(fi){
+  let p=0;
+  allCitiesOf(fi).forEach(c=>{ p+=gensAt(c,fi).reduce((a,g)=>a+g.troop,0)+S.cities[c].reserve*0.5; });
+  return p;
+}
+/* -------- 人事 -------- */
+function cmdYanQing(){
+  const gs=gensAt(curCity,S.player);
+  chooseGen(gs,"宴请：体力+50 忠诚+1（金100）",g=>{
+    if(S.cities[curCity].gold<100){alert("金不足");return;}
+    S.cities[curCity].gold-=100;
+    g.hp=Math.min(100,g.hp+50); g.loyal=Math.min(100,g.loyal+1);
+    pushLog(`设宴款待 ${g.name}，其体力恢复、忠诚+1。`);
+    refreshCity();
+  });
+}
+function cmdShangCi(){
+  const gsWithItems=gensAt(curCity,S.player).filter(g=>g.items.length);
+  if(!gsWithItems.length){ alert("本城没有持有道具的将领（道具由搜索获得后直接装备）"); return; }
+  openModal("赏赐",`<p>本作道具获得即装备，赏赐指令用于以【金】代赏：金500 → 忠诚+8。</p>
+  <div id="shangci">${gensAt(curCity,S.player).map(g=>`<div class="gen-row" onclick="doShangCi('${g.name}')"><span>${g.name}</span><span>忠 ${g.loyal}</span></div>`).join("")}</div>
+  <div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doShangCi(name){
+  const g=S.gens[name];
+  if(S.cities[curCity].gold<500){alert("金不足");return;}
+  S.cities[curCity].gold-=500;
+  g.loyal=Math.min(100,g.loyal+8);
+  pushLog(`重赏 ${g.name}，忠诚+8。`);
+  closeModal(); refreshCity();
+}
+function cmdMeiShou(){
+  openModal("没收",`<p>没收金充公：将领忠诚-20。选择将领：</p>
+  <div>${gensAt(curCity,S.player).map(g=>`<div class="gen-row" onclick="doMeiShou('${g.name}')"><span>${g.name}</span><span>忠 ${g.loyal}</span></div>`).join("")}</div>
+  <div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doMeiShou(name){
+  const g=S.gens[name], st=S.cities[curCity];
+  st.gold+=300; g.loyal=Math.max(0,g.loyal-20);
+  pushLog(`没收 ${name} 财物充公（金+300），其忠诚-20。`);
+  maybeMutiny(g); closeModal(); refreshCity();
+}
+function cmdZhaoXiang(){
+  const fac=playerFac();
+  if(!fac.captives.length){ alert("无俘虏"); return; }
+  const gs=freeGens(curCity);
+  if(!gs.length){ alert("本城无空闲将领"); return; }
+  openModal("招降",fac.captives.map(n=>`<div class="gen-row" onclick="doZhaoXiang('${n}')"><span>${n}</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doZhaoXiang(name){
+  const fac=playerFac();
+  const gs=freeGens(curCity).sort((a,b)=>gIntel(b)-gIntel(a));
+  const g=S.gens[name], talker=gs[0];
+  let p=clamp(35+(talker?gIntel(talker):50)/2-gForce(g)/4+(g.i0>90?10:0),5,85);
+  talker&&(talker.acted=true, talker.hp=Math.max(0,talker.hp-10));
+  if(Math.random()*100<p){
+    fac.captives=fac.captives.filter(x=>x!==name);
+    g.lord=S.player; g.city=curCity; g.loyal=45+rand(20); g.acted=false; g.away=false;
+    pushLog(`${name} 感其恩义，投降归顺！`);
+  } else pushLog(`招降 ${name} 被拒。`);
+  closeModal(); refreshCity();
+}
+function cmdChuZhan(){
+  const fac=playerFac();
+  if(!fac.captives.length){ alert("无俘虏"); return; }
+  openModal("处斩",`<p>处斩俘虏（其他武将会畏惧，但名声受损）。</p>
+  ${fac.captives.map(n=>`<div class="gen-row" onclick="doChuZhan('${n}')"><span>${n}</span><span>处斩</span></div>`).join("")}
+  <div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doChuZhan(name){
+  const fac=playerFac();
+  fac.captives=fac.captives.filter(x=>x!==name);
+  delete S.gens[name];
+  Object.values(S.gens).forEach(g=>{ if(g.lord===S.player) g.loyal=Math.max(0,g.loyal-3); });
+  pushLog(`${name} 被处斩。三军震悚。`);
+  closeModal(); refreshCity();
+}
+function cmdLiuFang(){
+  openModal("流放",gensAt(curCity,S.player).filter(g=>g.name!==playerFac().lord).map(g=>
+    `<div class="gen-row" onclick="doLiuFang('${g.name}')"><span>${g.name}</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function doLiuFang(name){
+  const g=S.gens[name];
+  g.lord=-2; g.city=pick(Object.keys(S.cities).filter(c=>S.cities[c].owner<0))||g.city;
+  g.troop=0;
+  pushLog(`${name} 被流放，成为 ${CITY[g.city]?CITY[g.city].n:"他乡"} 在野武将。`);
+  closeModal(); refreshCity();
+}
+/* -------- 交易/输送/移动 -------- */
+function cmdJiaoYi(){
+  const st=S.cities[curCity];
+  openModal("交易（1粮=5金）",`
+    <p>金钱 ${st.gold} ｜ 粮草 ${st.grain}</p>
+    <div class="cmd-grid">
+      <button class="btn small" onclick="trade(1,1000)">买粮1000（耗金5000）</button>
+      <button class="btn small" onclick="trade(1,5000)">买粮5000（耗金25000）</button>
+      <button class="btn small" onclick="trade(0,1000)">卖粮1000（得金5000）</button>
+      <button class="btn small" onclick="trade(0,5000)">卖粮5000（得金25000）</button>
+    </div>
+    <div class="close-row"><button class="btn small" onclick="closeModal()">关闭</button></div>`);
+}
+function trade(buy,amt){
+  const st=S.cities[curCity];
+  if(buy){ if(st.gold<amt*5){alert("金不足");return;} st.gold-=amt*5; st.grain=Math.min(GRAIN_CAP,st.grain+amt); }
+  else { if(st.grain<amt){alert("粮不足");return;} st.grain-=amt; st.gold=Math.min(GOLD_CAP,st.gold+amt*5); }
+  closeModal(); pushLog(`${CITY[curCity].n} 完成${buy?"买入":"卖出"}粮食 ${amt}。`); refreshCity();
+}
+function cmdShuSong(){
+  const targets=CITY[curCity].adj.filter(a=>S.cities[a].owner===S.player);
+  if(!targets.length){ alert("无相邻我方城池"); return; }
+  openModal("输送至",targets.map(a=>`<div class="gen-row" onclick="shuSongTo('${a}')"><span>${CITY[a].n}</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function shuSongTo(to){
+  const st=S.cities[curCity];
+  const gg=Math.floor(st.gold/2), gr=Math.floor(st.grain/2);
+  if(gg+gr<=0){alert("无物资可输送");return;}
+  st.gold-=gg; st.grain-=gr;
+  if(Math.random()<0.1){ pushLog(`输送往 ${CITY[to].n} 的队伍遇袭，物资尽失！`); }
+  else{ const t=S.cities[to]; t.gold=Math.min(GOLD_CAP,t.gold+gg); t.grain=Math.min(GRAIN_CAP,t.grain+gr);
+    pushLog(`输送 ${gg}金 ${gr}粮 至 ${CITY[to].n}。`); }
+  closeModal(); refreshCity();
+}
+function cmdYiDong(){
+  const targets=CITY[curCity].adj.filter(a=>S.cities[a].owner===S.player);
+  if(!targets.length){ alert("无相邻我方城池"); return; }
+  const gs=freeGens(curCity);
+  if(!gs.length){ alert("无空闲将领"); return; }
+  openModal("移动至",targets.map(a=>`<div class="gen-row" onclick="yidongTo('${a}')"><span>${CITY[a].n}</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function yidongTo(to){
+  const gs=freeGens(curCity);
+  chooseGen(gs,"选移动的将领（耗体力10）",g=>{
+    g.hp=Math.max(0,g.hp-10); g.acted=true; g.city=to;
+    pushLog(`${g.name} 移动至 ${CITY[to].n}。`);
+    closeModal(); refreshCity();
+  });
+}
+
+/* -------- 出征 -------- */
+function cmdChuZheng(){
+  const targets=CITY[curCity].adj.filter(a=>S.cities[a].owner!==S.player);
+  if(!targets.length){ alert("相邻无目标城池"); return; }
+  openModal("出征目标",targets.map(a=>`<div class="gen-row" onclick="closeModal();startExpedition('${curCity}','${a}')">
+    <span>${CITY[a].n}（${lordName(S.cities[a].owner)}）</span></div>`).join("")+
+    `<div class="close-row"><button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function startExpedition(from,to){
+  const gs=gensAt(from,S.player).filter(g=>g.troop>0);
+  if(!gs.length){ alert("该城无带兵将领"); return; }
+  window._exp={from,to,sel:[]};
+  openModal(`出征 ${CITY[to].n}（最多10将）`,
+    `<p>勾选出征将领，然后点击出征。守方：${lordName(S.cities[to].owner)}</p>
+    <div id="explist">${gs.map(g=>`<div class="gen-row" onclick="toggleExp(this,'${g.name}')">
+      <span>${avatarHTML(g.name,gForce(g),gIntel(g),g.type,g.lord,18)}${g.name} ${TROOP[g.type].name}</span><span>兵${g.troop} 武${gForce(g)} 智${gIntel(g)}</span></div>`).join("")}</div>
+    <div class="close-row"><button class="btn small danger" onclick="launchBattle()">出征</button>
+    <button class="btn small" onclick="closeModal()">取消</button></div>`);
+}
+function toggleExp(el,name){
+  const e=window._exp; const i=e.sel.indexOf(name);
+  if(i>=0){ e.sel.splice(i,1); el.style.outline=""; }
+  else{ if(e.sel.length>=10){alert("最多10将");return;} e.sel.push(name); el.style.outline="3px solid #a00"; }
+}
+function launchBattle(){
+  const e=window._exp; closeModal();
+  if(!e.sel.length){ alert("至少选一将"); return; }
+  beginBattle(e.from,e.to,e.sel,false);
+}
+/* -------- 战棋战斗 -------- */
+const BW=17,BH=11,TS=36;
+function terrAt(t,x,y){ return t[y][x]; }
+function buildBattleMap(cid){
+  const t=[]; for(let y=0;y<BH;y++){ t.push([]); for(let x=0;x<BW;x++){
+    const r=Math.random();
+    t[y][x]= r<0.08?2 : r<0.20?3 : r<0.26?4 : r<0.34?1 : 0; } }
+  // 城池在右侧
+  const cx=BW-2, cy=Math.floor(BH/2);
+  for(let y=cy-1;y<=cy+1;y++)for(let x=cx-1;x<=cx;x++) t[y][x]=7;
+  // 营寨 中部
+  t[Math.floor(BH/2)][Math.floor(BW/2)]=6;
+  // 村庄
+  t[1][Math.floor(BW*0.3)]=5; t[BH-2][Math.floor(BW*0.6)]=5;
+  return t;
+}
+function beginBattle(fromCid,toCid,genNames,isAI,aiSide){
+  const tiles=buildBattleMap(toCid);
+  const units=[];
+  const att=genNames.map((n,i)=>{ const g=S.gens[n];
+    return {g,side:0,x:i===0?1:0,y:1+ i*1.2 |0,mp:0,hp:gIntel(g)*2,moved:false,acted:false}; });
+  att.forEach((u,i)=>{ u.x=0; u.y=clamp(i*2,0,BH-1); });
+  // 守军：城内将领 + 预备役随机配3人
+  const defOwner=S.cities[toCid].owner;
+  let defG = defOwner>=0? gensAt(toCid,defOwner):[];
+  if(defG.length===0){ // 无主城：义军
+    const gtmp={name:"义军头领",f0:60,i0:40,type:"步",lv:1,items:[],troop:800,hp:100,exp:0,lord:-2};
+    defG=[gtmp];
+  }
+  const dfc={x:BW-2,y:Math.floor(BH/2)};
+  const def=defG.slice(0,10).map((g,i)=>{
+    if(g.lord===-2){} // 义军临时将
+    return {g,side:1,x:BW-1-(i%2),y:clamp(dfc.y-4+i*2,0,BH-1),mp:0,hp:gIntel(g)*2,moved:false,acted:false,ghost:g.lord===-2,main:i===0};
+  });
+  battle={tiles,units:[...att,...def],weather:pick(WEATHER),turn:1,toCid,fromCid,
+    attackerLord:isAI?aiSide:S.player, isAI:!!isAI, over:false,
+    attGrain:S.cities[fromCid].grain};
+  // 出征将领标记离城
+  if(!isAI){ genNames.forEach(n=>{ S.gens[n].away=true; }); }
+  show("battlescreen"); renderBattle();
+  blog(`=== 攻打 ${CITY[toCid].n} ===  天气：${battle.weather}  第1日`);
+  blog("胜负条件：全歼守军 / 守方主将被歼 → 攻方胜；攻方30日内未破 → 守方胜。");
+  if(!isAI) battlePlayerPhase();
+}
+function blog(t){ const b=$("battlelog"); b.innerHTML+=`<div>${esc(t)}</div>`; b.scrollTop=1e6; }
+function renderBattle(){
+  const cv=$("battlecanvas"), ctx=cv.getContext("2d");
+  const colorMode = $("app").classList.contains("mono");
+  ctx.fillStyle=colorMode?"#b9b9ae":"#2f3a26"; ctx.fillRect(0,0,cv.width,cv.height);
+  // 地形
+  for(let y=0;y<BH;y++)for(let x=0;x<BW;x++){
+    const ti=battle.tiles[y][x], t=TERRAIN[ti];
+    if(colorMode){
+      ctx.fillStyle=["#d0d0d0","#cccccc","#a8a8a8","#b8b8b8","#c0c4c8","#d8d8d0","#c8c8c0","#909090"][ti];
+      ctx.fillRect(x*TS,y*TS,TS-1,TS-1);
+      ctx.fillStyle="#333"; ctx.font="11px monospace";
+      if(ti<=4) ctx.fillText(t.ch,x*TS+8,y*TS+22);
+      else { ctx.font="bold 12px monospace"; ctx.fillText(t.ch,x*TS+10,y*TS+23); }
+    }else{
+      ctx.fillStyle=t.c; ctx.fillRect(x*TS,y*TS,TS-1,TS-1);
+      // 地形纹理
+      ctx.fillStyle=t.dot;
+      if(ti===0||ti===1){ for(let k=0;k<3;k++){ const rx=x*TS+4+((k*13)%28), ry=y*TS+8+((k*17)%22); ctx.fillRect(rx,ry,2,3);} }
+      if(ti===2){ ctx.beginPath(); ctx.moveTo(x*TS+6,y*TS+TS-5); ctx.lineTo(x*TS+TS/2,y*TS+5); ctx.lineTo(x*TS+TS-6,y*TS+TS-5); ctx.closePath(); ctx.fill(); }
+      if(ti===3){ ctx.beginPath(); ctx.arc(x*TS+TS/2,y*TS+TS/2-2,8,0,7); ctx.fill(); ctx.fillStyle="#6b4a2a"; ctx.fillRect(x*TS+TS/2-1,y*TS+TS/2+2,2,7); }
+      if(ti===4){ for(let k=0;k<2;k++){ ctx.fillRect(x*TS+4, y*TS+8+k*11, TS-10, 2); } }
+      if(ti===5){ ctx.fillStyle="#8a5a3a"; ctx.fillRect(x*TS+8,y*TS+12,TS-18,TS-20); ctx.fillStyle="#5a3a2a"; ctx.fillRect(x*TS+8,y*TS+12,TS-18,3); }
+      if(ti===6){ ctx.fillStyle="#7a4a2a"; ctx.fillRect(x*TS+5,y*TS+14,TS-12,TS-22); ctx.fillStyle="#d9c86a"; ctx.fillRect(x*TS+TS/2-1,y*TS+6,2,8); }
+      if(ti===7){ ctx.fillStyle="#7a7a86"; ctx.fillRect(x*TS+4,y*TS+8,TS-10,TS-14); ctx.fillStyle="#4a4a56"; ctx.fillRect(x*TS+4,y*TS+8,TS-10,4); ctx.fillStyle="#3a3a44"; ctx.fillRect(x*TS+TS/2-3,y*TS+TS/2-2,6,TS/2-2); }
+      // 网格线
+      ctx.strokeStyle="rgba(0,0,0,.12)"; ctx.lineWidth=1; ctx.strokeRect(x*TS+.5,y*TS+.5,TS-1,TS-1);
+    }
+  }
+  // 天气滤镜
+  if(!colorMode){
+    const fx=WEATHER_FX[battle.weather];
+    if(fx){ ctx.fillStyle=fx.tint; ctx.fillRect(0,0,cv.width,cv.height); }
+    if(battle.weather==="雨"){ ctx.strokeStyle="rgba(200,225,255,.5)"; ctx.lineWidth=1;
+      for(let k=0;k<70;k++){ const rx=(k*97)%cv.width, ry=(k*53)%cv.height; ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx-4,ry+10); ctx.stroke(); } }
+    if(battle.weather==="冰雹"){ ctx.fillStyle="rgba(240,250,255,.75)";
+      for(let k=0;k<50;k++){ const rx=(k*131)%cv.width, ry=(k*71)%cv.height; ctx.fillRect(rx,ry,2,2); } }
+    if(battle.weather==="大风"){ ctx.strokeStyle="rgba(255,255,255,.35)"; ctx.lineWidth=2;
+      for(let k=0;k<12;k++){ const ry=(k*29+8)%cv.height; ctx.beginPath(); ctx.moveTo(10,ry); ctx.lineTo(90,ry+6); ctx.stroke(); } }
+  }
+  // 可移动高亮
+  if(battle.sel && !battle.over){
+    ctx.strokeStyle=colorMode?"#a00":"#ffe066"; ctx.lineWidth=2;
+    reach(battle.sel).forEach(([x,y])=>{
+      ctx.strokeRect(x*TS+2,y*TS+2,TS-5,TS-5);
+      if(!colorMode){ ctx.fillStyle="rgba(255,224,102,.18)"; ctx.fillRect(x*TS+2,y*TS+2,TS-5,TS-5); }
+    });
+  }
+  battle.units.forEach(u=>{
+    if(u.dead)return;
+    const px=u.x*TS, py=u.y*TS;
+    if(colorMode){
+      ctx.fillStyle=u.side===0?"#222":"#fff";
+      ctx.fillRect(px+4,py+4,TS-9,TS-9);
+      ctx.strokeStyle="#000"; ctx.strokeRect(px+4,py+4,TS-9,TS-9);
+      ctx.fillStyle=u.side===0?"#fff":"#111"; ctx.font="bold 10px monospace";
+      ctx.fillText(u.g.name.slice(0,2),px+6,py+17);
+    }else{
+      // 阵营底盘
+      ctx.fillStyle = u.side===0 ? "rgba(30,60,120,.55)" : "rgba(140,40,40,.55)";
+      ctx.beginPath(); ctx.ellipse(px+TS/2,py+TS-6,TS/2-4,4,0,0,7); ctx.fill();
+      drawUnitSprite(ctx, px+1, py+1, TS-3, u.g.type, u.side, u.g.name, gForce(u.g), gIntel(u.g));
+      // 名字条
+      ctx.fillStyle="rgba(0,0,0,.55)"; ctx.fillRect(px+1,py+TS-13,TS-3,9);
+      ctx.fillStyle="#fff"; ctx.font="bold 9px monospace"; ctx.fillText(u.g.name.slice(0,3),px+3,py+TS-6);
+    }
+    // 兵力条
+    const maxT=Math.max(1,maxTroop(u.g));
+    const ratio=clamp(u.g.troop/maxT,0,1);
+    ctx.fillStyle="#222"; ctx.fillRect(px+3,py+TS-3,TS-7,2);
+    ctx.fillStyle=u.side===0?"#4ac94a":"#e05a4a"; ctx.fillRect(px+3,py+TS-3,(TS-7)*ratio,2);
+    if(battle.sel===u){
+      ctx.strokeStyle=colorMode?"#f00":"#ffe066"; ctx.lineWidth=2;
+      ctx.strokeRect(px+1,py+1,TS-3,TS-3);
+    }
+  });
+  const hud=$("battlehud");
+  const fx=WEATHER_FX[battle.weather];
+  hud.innerHTML=`<span>进攻：${lordName(battle.attackerLord)} ｜ 防守：${lordName(S.cities[battle.toCid].owner)}</span>
+    <span>天气：<b>${fx?fx.icon+" ":""}${battle.weather}</b> ｜ 第 ${battle.turn}/30 日 ｜ 粮草 ${Math.max(0,battle.attGrain)}</span>`;
+}
+function moveCost(u,x,y){
+  const ti=battle.tiles[y][x];
+  const key={0:"plain",1:"grass",2:"mount",3:"forest",4:"river",5:"base",6:"base",7:"base"}[ti];
+  let c=TROOP[u.g.type].cost[key];
+  const b=genItemBonus(u.g); 
+  return c;
+}
+function reach(u){
+  let mp=TROOP[u.g.type].mp+genItemBonus(u.g).mv;
+  const seen={[u.x+","+u.y]:0}; const frontier=[[u.x,u.y,mp]]; const out=[];
+  while(frontier.length){
+    const [x,y,m]=frontier.shift();
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{
+      const nx=x+dx, ny=y+dy;
+      if(nx<0||ny<0||nx>=BW||ny>=BH)return;
+      if(battle.units.some(v=>!v.dead&&v.x===nx&&v.y===ny))return;
+      const c=moveCost(u,nx,ny);
+      const rem=m-c;
+      const k=nx+","+ny;
+      if(rem>=0 && (seen[k]===undefined||rem>seen[k])){ seen[k]=rem; out.push([nx,ny]); frontier.push([nx,ny,rem]); }
+    });
+  }
+  return out;
+}
+function terrMod(u){
+  const ti=battle.tiles[u.y][u.x], t=TERRAIN[ti];
+  const tn=TROOP[u.g.type].name;
+  let def=t.defMod, atk=1;
+  if(t.bad && !t.bad[tn]){ atk=t.mAtk; def=Math.max(def, t.mDef<0? 1+t.mDef : def); def=t.mDef; }
+  return {atk,def};
+}
+function calcDamage(a,d){
+  const ma=terrMod(a), md=terrMod(d);
+  const F=gForce(a.g);
+  let dmg=(30+F*0.8)*(0.4+a.g.troop/1500)*ma.atk*TROOP[a.g.type].atk*rnd(0.85,1.15);
+  dmg*=(1-md.def); // 防方地形：正减伤→减伤，负（劣地）→伤害放大
+  return Math.max(15,Math.round(dmg));
+}
+function unitAt(x,y){ return battle.units.find(u=>!u.dead&&u.x===x&&u.y===y); }
+function attackUnit(a,d){
+  const dmg=calcDamage(a,d);
+  d.g.troop=Math.max(0,d.g.troop-dmg);
+  blog(`${a.g.name} 攻击 ${d.g.name}，杀伤 ${dmg}（余兵 ${d.g.troop}）`);
+  if(d.g.troop<=0){
+    d.dead=true;
+    if(d.ghost){ blog(`${d.g.name} 全军覆没。`); }
+    else if(Math.random()<0.35){ captureGen(d); }
+    else blog(`${d.g.name} 兵败突围而走。`);
+  }
+  checkBattleEnd();
+}
+function captureGen(d){
+  blog(`${d.g.name} 兵败被俘！`);
+  const winnerSide = d.side===0? 1:0;
+  const winnerLord = winnerSide===0? battle.attackerLord : S.cities[battle.toCid].owner;
+  if(winnerLord>=0){ const fac=S.factions[winnerLord];
+    if(!fac.captives.includes(d.g.name)) fac.captives.push(d.g.name);
+    d.g.away=false; d.g.captured=true; d.g.troop=0;
+    d.g.city="__prison"+winnerLord;
+  }
+}
+function useStratagem(u, name, tx, ty){
+  const st=STRATAGEM[name];
+  const target=unitAt(tx,ty);
+  if(!target||target.side===u.side){ blog("目标无效"); return; }
+  const dist=Math.abs(u.x-tx)+Math.abs(u.y-ty);
+  if(dist> (st.rng||0)){ blog("距离过远"); return; }
+  if(st.banWeather&&st.banWeather.includes(battle.weather)){ blog(`${battle.weather}无法使用${name}`); return; }
+  if(st.needWeather&&!st.needWeather.includes(battle.weather)){ blog(`需${st.needWeather.join("/")}天气`); return; }
+  if(st.needTerrain&&!st.needTerrain.includes(battle.tiles[u.y][u.x])){ blog("地形不符"); return; }
+  if(st.needNearRiver){
+    let near=false;
+    [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dx,dy])=>{ const nx=u.x+dx,ny=u.y+dy;
+      if(nx>=0&&ny>=0&&nx<BW&&ny<BH&&battle.tiles[ny][nx]===4)near=true; });
+    if(!near){ blog("需靠近河流"); return; }
+  }
+  if(u.hp<st.mp){ blog("技力不足"); return; }
+  u.hp-=st.mp; u.acted=true;
+  if(st.dmg>0){
+    const wMod={"晴":1.1,"阴":0.95,"雨":0.8,"大风":0.95,"冰雹":0.5}[battle.weather]||1;
+    let dmg=Math.round(st.dmg*(0.5+gIntel(u.g)/120)*wMod*(target.g.troop>0?1:1));
+    target.g.troop=Math.max(0,target.g.troop-dmg);
+    blog(`${u.g.name} 施展【${name}】，${target.g.name} 损兵 ${dmg}（余 ${target.g.troop}）`);
+    if(target.g.troop<=0){ target.dead=true;
+      if(Math.random()<0.35)captureGen(target); else blog(`${target.g.name} 兵败突围而走。`);
+    }
+  } else if(name==="天变"){
+    battle.weather=pick(["晴","阴","雨","大风"]);
+    blog(`${u.g.name} 观星改天，天气变为【${battle.weather}】！`);
+  }
+  checkBattleEnd();
+}
+function checkBattleEnd(){
+  if(battle.over)return;
+  const attAlive=battle.units.some(u=>!u.dead&&u.side===0);
+  const defAlive=battle.units.some(u=>!u.dead&&u.side===1);
+  const defLord=S.cities[battle.toCid].owner;
+  // 守方主将
+  const defMain=battle.units.find(u=>u.side===1&&u.main);
+  if(!defAlive){ battleOver(true,"全歼守军"); return; }
+  if(defMain&&defMain.dead){ battleOver(true,"守方主将被歼"); return; }
+  if(!attAlive){ battleOver(false,"攻方全灭"); return; }
+  if(battle.attGrain<=0){ battleOver(false,"攻方粮尽"); return; }
+}
+function battleOver(attWin,reason){
+  battle.over=true;
+  const to=battle.toCid, from=battle.fromCid;
+  const attUnits=battle.units.filter(u=>u.side===0);
+  if(attWin){
+    blog(`★ 攻克 ${CITY[to].n}！（${reason}）`);
+    const oldOwner=S.cities[to].owner;
+    S.cities[to].owner=battle.attackerLord;
+    // 攻方幸存将领入城
+    attUnits.filter(u=>!u.dead).forEach(u=>{ u.g.city=to; u.g.away=false; u.g.acted=true;
+      u.g.exp=(u.g.exp||0)+20+rand(30); levelUp(u.g); });
+    // 守方残将逃散
+    battle.units.filter(u=>u.side===1&&!u.dead&&!u.ghost).forEach(u=>{
+      u.g.city=to; });
+    if(oldOwner>=0 && allCitiesOf(oldOwner).length===0) eliminateFaction(oldOwner, battle.attackerLord);
+    if(oldOwner>=0) aiAfterLose(oldOwner);
+  } else {
+    blog(`× 攻势受挫（${reason}），残部退回 ${CITY[from].n}。`);
+    attUnits.filter(u=>!u.dead).forEach(u=>{ u.g.city=from; u.g.away=false; u.g.acted=true;
+      u.g.troop=Math.floor(u.g.troop*0.8); });
+  }
+  S.cities[from].grain=battle.attGrain;
+  battle.attUnits=null;
+  setTimeout(()=>{ battle=null; if(!$("scr-map").classList.contains("active")) backMap(); else {renderMap();renderSide();renderTop();} checkEnd(); },1800);
+}
+function levelUp(g){
+  while(g.exp>=100*(g.lv)&&g.lv<30){ g.exp-=100*g.lv; g.lv++;
+    g.f0=Math.min(120,g.f0+2); g.i0=Math.min(120,g.i0+2);
+    pushLog(`${g.name} 升至 ${g.lv} 级！`); }
+}
+function aiAfterLose(fi){ /* 占位：AI君主可迁移（简化不做） */ }
+function eliminateFaction(fi,byFi){
+  S.factions[fi].dead=true;
+  const lord=S.factions[fi].lord;
+  // 释放该势力关押的俘虏（成为在野）
+  (S.factions[fi].captives||[]).forEach(n=>{
+    const g=S.gens[n]; if(!g)return;
+    g.lord=-2; g.city=pick(Object.keys(S.cities).filter(c=>!c.startsWith("__")))||"luoyang";
+  });
+  // 城中将领 → 归降/在野
+  Object.values(S.gens).forEach(g=>{
+    if(g.lord===fi && !(g.city||"").startsWith("__prison")){
+      if(Math.random()<0.6){ g.lord=byFi; g.loyal=40+rand(20); g.acted=false; g.away=false; g.captured=false;
+        if(S.factions[byFi]) pushLog(`${g.name} 归降 ${S.factions[byFi].lord}。`); }
+      else { g.lord=-2; g.city=pick(Object.keys(S.cities)); g.troop=0; }
+    }
+  });
+  pushLog(`${lord} 势力覆灭！`);
+}
+/* -------- 玩家战斗回合 -------- */
+function battlePlayerPhase(){
+  battle.phase="player";
+  battle.units.filter(u=>u.side===0&&!u.dead).forEach(u=>{u.moved=false;u.acted=false;});
+  renderBattleCmd();
+  selectUnit(battle.units.find(u=>u.side===0&&!u.dead)||null);
+}
+function selectUnit(u){
+  battle.sel=u;
+  $("battlecmd").innerHTML="";
+  if(!u)return;
+  renderBattle();
+  renderBattleCmd();
+}
+function renderBattleCmd(){
+  const u=battle.sel;
+  const box=$("battlecmd");
+  if(battle.over){ box.innerHTML=""; return; }
+  if(!u){ box.innerHTML=`<button class="btn small" onclick="battleEndPhase()">结束本回合</button>`; return; }
+  const stratList=availableStratagems(u);
+  box.innerHTML=`<span style="font-size:12px;align-self:center;">${avatarHTML(u.g.name,gForce(u.g),gIntel(u.g),u.g.type,u.g.lord,20)}${u.g.name} 兵${u.g.troop} 技力${u.hp}</span>
+    <button class="btn small" onclick="battleMoveMode()">移动</button>
+    <button class="btn small" onclick="battleAttackMode()">攻击</button>
+    ${stratList.map(s=>`<button class="btn small" onclick="battleStratMode('${s}')">计谋·${s}</button>`).join("")}
+    <button class="btn small" onclick="battleWait()">待机</button>
+    <button class="btn small" onclick="battleEndPhase()">结束回合</button>
+    <button class="btn small danger" onclick="battleRetreat()">全军撤退</button>
+    <button class="btn small" onclick="toggleMono()">画面</button>`;
+}
+function availableStratagems(u){
+  return Object.keys(STRATAGEM).filter(k=>{
+    const s=STRATAGEM[k];
+    if(s.troop&&s.troop!==u.g.type)return false;
+    if(u.g.lv<s.lv)return false;
+    return true;
+  });
+}
+let battleMode="move";
+function battleMoveMode(){ battleMode="move"; blog("点击目标格移动。"); }
+function battleAttackMode(){ battleMode="attack"; blog("点击相邻敌将攻击。"); }
+function battleStratMode(name){ battleMode="strat:"+name;
+  const s=STRATAGEM[name]; blog(`选择目标（范围${s.rng||0}格）：${s.desc||""}`); }
+function battleWait(){ if(battle.sel){ battle.sel.acted=true; nextPlayerUnit(); } }
+function battleRetreat(){
+  if(!confirm("确定全军撤退？"))return;
+  battle.units.filter(u=>u.side===0&&!u.dead).forEach(u=>{ u.g.city=battle.fromCid; u.g.away=false; });
+  battleOver(false,"攻方撤退");
+}
+function nextPlayerUnit(){
+  const next=battle.units.find(u=>u.side===0&&!u.dead&&!u.acted);
+  if(next)selectUnit(next);
+  else battleEndPhase();
+}
+function battleEndPhase(){
+  // 敌方回合
+  battle.sel=null; renderBattle();
+  setTimeout(()=>{ enemyPhase(); },150);
+}
+function enemyPhase(){
+  const defs=battle.units.filter(u=>u.side===1&&!u.dead);
+  for(const u of defs){
+    if(battle.over)break;
+    // 找最近的攻方
+    let tgt=null,best=1e9;
+    battle.units.filter(v=>v.side===0&&!v.dead).forEach(v=>{
+      const d=Math.abs(u.x-v.x)+Math.abs(u.y-v.y);
+      if(d<best){best=d;tgt=v;}
+    });
+    if(!tgt)continue;
+    const rng=TROOP[u.g.type].range;
+    // 简单移动：朝目标走
+    let steps=Math.min(TROOP[u.g.type].mp, best-rng>0?best-rng:0);
+    while(steps>0){
+      const dx=Math.sign(tgt.x-u.x), dy=Math.sign(tgt.y-u.y);
+      let moved=false;
+      for(const [mx,my] of (Math.abs(tgt.x-u.x)>Math.abs(tgt.y-u.y)?[[dx,0],[0,dy]]:[[0,dy],[dx,0]])){
+        const nx=u.x+mx, ny=u.y+my;
+        if(nx<0||ny<0||nx>=BW||ny>=BH)continue;
+        if(battle.units.some(v=>!v.dead&&v!==u&&v.x===nx&&v.y===ny))continue;
+        u.x=nx;u.y=ny;steps--;moved=true;break;
+      }
+      if(!moved)break;
+    }
+    const d2=Math.abs(u.x-tgt.x)+Math.abs(u.y-tgt.y);
+    if(d2<=rng) attackUnit(u,tgt);
+  }
+  // 回合推进
+  if(battle.over)return;
+  battle.turn++;
+  // 粮草消耗
+  const attTroops=battle.units.filter(u=>u.side===0&&!u.dead).reduce((a,u)=>a+u.g.troop,0);
+  battle.attGrain=Math.max(0,battle.attGrain-Math.ceil(attTroops/50));
+  battle.weather=Math.random()<0.4?pick(WEATHER):battle.weather;
+  blog(`—— 第${battle.turn}日  天气：${battle.weather} ——`);
+  if(battle.turn>30){ battleOver(false,"三十日不克"); return; }
+  renderBattle();
+  if(!battle.over) battlePlayerPhase();
+}
+/* -------- 战斗画布点击 -------- */
+$("battlecanvas").addEventListener("click",ev=>{
+  if(!battle||battle.over)return;
+  const rect=ev.target.getBoundingClientRect();
+  const x=Math.floor((ev.clientX-rect.left)/ (rect.width/BW));
+  const y=Math.floor((ev.clientY-rect.top)/ (rect.height/BH));
+  const sel=battle.sel;
+  if(!sel||sel.side!==0)return;
+  const tu=unitAt(x,y);
+  if(battleMode==="move"){
+    if(tu){ selectUnit(tu.side===0&&!tu.acted?tu:sel); return; }
+    if(reach(sel).some(([a,b])=>a===x&&b===y)){ sel.x=x;sel.y=y; sel.moved=true; renderBattle(); }
+  } else if(battleMode==="attack"){
+    if(tu&&tu.side===1){
+      const d=Math.abs(sel.x-x)+Math.abs(sel.y-y);
+      if(d<=TROOP[sel.g.type].range){ attackUnit(sel,tu); sel.acted=true; if(!battle.over)nextPlayerUnit(); }
+      else blog("目标超出攻击距离");
+    } else blog("请点击敌将");
+  } else if(battleMode.startsWith("strat:")){
+    const name=battleMode.slice(6);
+    useStratagem(sel,name,x,y);
+    if(!battle.over&&sel.acted)nextPlayerUnit(); else renderBattleCmd();
+  }
+  renderBattle();
+});
+
+/* ================= 月度结算 & AI ================= */
+function endMonth(){
+  if(S.gameover)return;
+  // 月度经济
+  const m=S.month;
+  const events=[];
+  Object.entries(S.cities).forEach(([cid,st])=>{
+    if(st.owner<0)return;
+    if(m===3||m===6||m===9||m===12){
+      const tax=Math.floor(st.bu*st.pop/8000);
+      st.gold=Math.min(GOLD_CAP,st.gold+tax);
+      if(st.owner===S.player)events.push(`${CITY[cid].n} 征得税金 ${tax}。`);
+    }
+    if(m===6||m===10){
+      const harv=Math.floor(st.ag*st.pop/5000);
+      st.grain=Math.min(GRAIN_CAP,st.grain+harv);
+      if(st.owner===S.player)events.push(`${CITY[cid].n} 收获粮草 ${harv}。`);
+    }
+    // 兵粮消耗
+    let eat=0; gensAt(cid,st.owner).forEach(g=>eat+=Math.ceil(g.troop/25));
+    eat+=Math.ceil(st.reserve/50);
+    st.grain-=eat;
+    if(st.grain<0){ st.grain=0;
+      // 饥荒
+      st.pop=Math.floor(st.pop*0.85); st.loy=Math.max(0,st.loy-15);
+      st.ag=Math.max(0,st.ag-10); st.bu=Math.max(0,st.bu-10);
+      gensAt(cid,st.owner).forEach(g=>g.troop=Math.floor(g.troop*0.85));
+      if(st.owner===S.player)events.push(`⚠ ${CITY[cid].n} 粮尽，饥荒！人口兵力锐减。`);
+    }
+    // 人口与民忠
+    if(st.loy>=60) st.pop=Math.min(2000000,Math.floor(st.pop*1.003));
+    st.loy=Math.max(0,st.loy-1);
+    // 灾害
+    if(Math.random()<0.06 && st.df<90){
+      if(Math.random()<0.5){ st.ag=Math.max(0,st.ag-12); st.grain=Math.floor(st.grain*0.85); st.pop=Math.floor(st.pop*0.95);
+        if(st.owner===S.player)events.push(`⚠ ${CITY[cid].n} 旱灾！农业、粮食、人口受损。`); }
+      else { st.bu=Math.max(0,st.bu-12); st.gold=Math.floor(st.gold*0.85); st.grain=Math.floor(st.grain*0.9);
+        if(st.owner===S.player)events.push(`⚠ ${CITY[cid].n} 水灾！商业、金钱受损。`); }
+    }
+    if(Math.random()<0.05 && st.loy<50){
+      st.reserve=Math.floor(st.reserve*0.5); st.loy=Math.max(0,st.loy-5);
+      if(st.owner===S.player)events.push(`⚠ ${CITY[cid].n} 民变暴动！预备役溃散。`);
+    }
+  });
+  // 将领恢复与忠诚
+  Object.values(S.gens).forEach(g=>{
+    if(g.lord<0)return;
+    g.hp=Math.min(100,g.hp+20);
+    if(g.lord!==S.player||g.name!==S.factions[S.player].lord) g.loyal=Math.max(0,g.loyal-1);
+    if(g.city&&g.city.startsWith("__prison"))return;
+    if(g.city!=="__x" && S.cities[g.city] && S.cities[g.city].owner!==g.lord && g.lord>=0){
+      // 城丢了，将领撤往最近的友城
+      const own=allCitiesOf(g.lord);
+      if(own.length)g.city=own[0]; else g.lord=-2;
+    }
+    g.acted=false;
+    const wasLord=g.lord;
+    if(wasLord>=0&&g.loyal<40&&g.name!==S.factions[wasLord].lord&&Math.random()<0.05){
+      g.lord=-2;
+      if(wasLord===S.player)events.push(`⚠ ${g.name} 忠诚过低，叛逃而去！`);
+    }
+  });
+  // AI 势力行动
+  aiTurn();
+  // 日期推进
+  S.month++; if(S.month>12){S.month=1;S.year++;}
+  events.forEach(pushLog);
+  pushLog("—— 月度结算完毕 ——");
+  renderMap(); renderSide(); renderTop(); checkEnd();
+}
+function aiTurn(){
+  SCENARIOS[S.scen];
+  S.factions.forEach((fac,fi)=>{
+    if(fi===S.player||fac.dead)return;
+    const cities=allCitiesOf(fi);
+    if(!cities.length)return;
+    // 内政：每城随机发展
+    cities.forEach(cid=>{
+      const st=S.cities[cid];
+      const gs=gensAt(cid,fi).filter(g=>g.hp>=30);
+      if(!gs.length)return;
+      const g=pick(gs); g.acted=true;
+      const roll=Math.random();
+      if(roll<0.3){ st.ag=Math.min(100,st.ag+3); }
+      else if(roll<0.6){ st.bu=Math.min(100,st.bu+3); }
+      else if(roll<0.7){ st.loy=Math.min(100,st.loy+4); }
+      else if(roll<0.8){ st.df=Math.min(100,st.df+4); }
+      else if(st.gold>=st.loy*2*2){ // 征兵
+        const n=Math.floor(st.loy*20*0.8), cost=n*2;
+        if(st.gold>=cost){ st.gold-=cost; st.reserve+=n; st.loy=Math.max(0,st.loy-2); }
+      }
+      // 自动配兵
+      gensAt(cid,fi).forEach(g2=>{
+        const cap=maxTroop(g2);
+        if(g2.troop<cap&&st.reserve>0){ const n=Math.min(cap-g2.troop,st.reserve); g2.troop+=n; st.reserve-=n; }
+      });
+    });
+    // 军事：尝试攻击相邻最弱敌城
+    if(Math.random()<0.35){
+      const cands=[];
+      cities.forEach(cid=>{
+        CITY[cid].adj.forEach(a=>{
+          const o=S.cities[a].owner;
+          if(o!==fi) cands.push({from:cid,to:a,def:o});
+        });
+      });
+      if(cands.length){
+        const t=pick(cands);
+        const attG=gensAt(t.from,fi).filter(g=>g.troop>200).slice(0,6);
+        if(attG.length){
+          const atkPow=attG.reduce((a,g)=>a+g.troop+gForce(g)*8,0);
+          const defG=gensAt(t.to,t.def>=0?t.def:-1);
+          const defPow=defG.reduce((a,g)=>a+g.troop+gForce(g)*8,0)+800; // 城防加成
+          if(atkPow>defPow*1.15){
+            // 攻方胜
+            const oldOwner=S.cities[t.to].owner;
+            const loss=0.35+Math.random()*0.2;
+            attG.forEach(g=>{ g.troop=Math.floor(g.troop*(1-loss)); g.city=t.to; g.acted=true; });
+            S.cities[t.to].owner=fi;
+            S.cities[t.to].reserve=Math.floor(S.cities[t.to].reserve*0.5);
+            if(oldOwner>=0&&allCitiesOf(oldOwner).length===0) eliminateFaction(oldOwner,fi);
+            if(oldOwner===S.player) pushLog(`⚠ 我方 ${CITY[t.to].n} 被 ${S.factions[fi].lord} 攻陷！`);
+            else pushLog(`${S.factions[fi].lord} 攻取 ${CITY[t.to].n}。`);
+          } else {
+            attG.forEach(g=>g.troop=Math.floor(g.troop*0.75));
+            if(t.def===S.player) pushLog(`${S.factions[fi].lord} 来犯 ${CITY[t.to].n}，被我军击退！`);
+          }
+        }
+      }
+    }
+  });
+}
+function checkEnd(){
+  const total=CITIES.length;
+  const mine=allCitiesOf(S.player).length;
+  if(mine===total){ S.gameover=true;
+    openModal("◆ 天下一统 ◆",`<p style="text-align:center;font-size:18px;letter-spacing:4px;">${S.factions[S.player].lord} 席卷宇内，霸业功成！<br><br>${S.year}年${S.month}月</p>
+      <div class="close-row" style="text-align:center;"><button class="btn" onclick="location.reload()">再开新局</button></div>`);
+  } else if(mine===0){
+    S.gameover=true;
+    openModal("◆ 霸业成空 ◆",`<p style="text-align:center;font-size:18px;letter-spacing:4px;">${S.factions[S.player].lord} 兵败身死，天下与你再无干系。<br><br>${S.year}年${S.month}月</p>
+      <div class="close-row" style="text-align:center;"><button class="btn" onclick="location.reload()">再开新局</button></div>`);
+  } else if(S.year>=SCENARIOS[S.scen].year+SCENARIOS[S.scen].years){
+    S.gameover=true;
+    openModal("◆ 时限已至 ◆",`<p style="text-align:center;">${SCENARIOS[S.scen].years}年期满，你保有 ${mine}/${total} 城。<br>历史评价：${mine>total/2?"雄踞一方，虽败犹荣":"泯然众诸侯矣"}</p>
+      <div class="close-row" style="text-align:center;"><button class="btn" onclick="location.reload()">再开新局</button></div>`);
+  }
+}
+
+/* ================= 武将详情 ================= */
+function genDetail(name,isCap){
+  const g=S.gens[name]; if(!g)return;
+  const b=genItemBonus(g);
+  openModal((isCap?"【俘虏】":"")+g.name,`
+    <div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:6px;">
+      <img class="avatar" src="${makeAvatar(g.name,gForce(g),gIntel(g),g.type,g.lord)}" style="width:64px;height:64px">
+      <div style="flex:1">
+    <div class="kv"><span>武力</span><span>${g.f0}${b.f?` +${b.f}(道具)`: ""} = ${gForce(g)}</span></div>
+    <div class="kv"><span>智力</span><span>${g.i0}${b.i?` +${b.i}(道具)`: ""} = ${gIntel(g)}</span></div>
+    <div class="kv"><span>兵种</span><span>${TROOP[g.type].name}</span></div>
+    <div class="kv"><span>等级</span><span>${g.lv}（经验 ${g.exp||0}）</span></div>
+    <div class="kv"><span>兵力</span><span>${g.troop} / 上限 ${maxTroop(g)}（武×10+智×10+级×100）</span></div>
+    <div class="kv"><span>忠诚</span><span>${g.lord===S.player?g.loyal:"—"}</span></div>
+    <div class="kv"><span>体力</span><span>${g.hp}</span></div>
+    <div class="kv"><span>道具</span><span>${g.items.join("、")||"无"}</span></div>
+    <div class="kv"><span>驻地</span><span>${CITY[g.city]?CITY[g.city].n:"—"}</span></div>
+    <p style="margin-top:6px;color:var(--dim);">计谋：${availableStratagems({g,lv:g.lv}).join("、")||"暂无"}</p>
+      </div>
+    </div>
+    <div class="close-row"><button class="btn small" onclick="closeModal()">关闭</button></div>`);
+}
+
+/* ================= 弹窗 ================= */
+function openModal(title,html){
+  $("modalbox").innerHTML=`<h3>${title}</h3>${html}`;
+  $("modal").classList.add("active");
+}
+function closeModal(){ $("modal").classList.remove("active"); }
+
+/* ================= 帮助 ================= */
+function showHelp(){
+  openModal("游戏说明",`<div class="help-text">
+  <p><b>目标</b>：在时限内攻下所有城池，统一天下。城池尽失则败亡。</p>
+  <p><b>流程</b>：每名将领每月可执行一条指令，完成后点【结束本月】进入结算：3/6/9/12月征税、6/10月收粮、每月耗兵粮、可能发生旱/水灾、暴动、饥荒。</p>
+  <p><b>内政</b>：开垦→农业（影响6/10月收粮）；招商→商业（影响季度税金）；治理→防灾；出巡→民忠（影响征兵量=民忠×20）；搜索→在野武将/道具。</p>
+  <p><b>军备</b>：征兵入预备役，【分配】给将领（上限=武×10+智×10+级×100）。出征限10将，战棋战斗，30日内不克则守方胜。</p>
+  <p><b>兵种</b>：步（均衡，山林地加成）/ 弓（射程2）/ 骑（平原快攻高防低）/ 水（河战无敌，陆地疲软）/ 极（全项最强，吕布专属或铁骑兵符转）/ 玄（计谋大师，太玄兵符转）。山地森林利步弓，河流必用水军——站错地形攻防暴跌。</p>
+  <p><b>天气</b>：晴→计谋威力最大；雨天只能用水淹；冰雹→大部分计谋封印。文官（智力90+）计谋毁天灭地，诸葛完虐吕布。</p>
+  <p><b>忠诚</b>：每月-1，低于40可能叛逃。宴请+1、赏赐+8、没收-20。敌方低忠将可招揽/策反。</p>
+  <p><b>交易</b>：1粮=5金。粮上限65536会溢出归零，勿囤积。</p>
+  <p><b>画面</b>：顶栏/战斗内可切换【彩色像素】与【黑白 LCD】两种画面。武将头像是按武力/智力/兵种程序化生成的像素立绘（武力≥95 戴盔、智力≥90 着冠）。</p>
+  <p><b>人才</b>：全国散落 80+ 在野武将，靠【搜索】陆续发掘——这是原版最大的长期钩子。</p>
+  <p style="margin-top:6px;color:var(--dim);">复刻自步步高电子词典《三国霸业》。城池名/武将名/计谋表取自原版 ROM（38 城、187 将名录），数值依社区资料整理，标注[假设]处为推测。</p>
+  </div><div class="close-row"><button class="btn small" onclick="closeModal()">关闭</button></div>`);
+}
+
+/* ================= 标题画廊 ================= */
+window.addEventListener("load",()=>{
+  const box=$("title-gallery"); if(!box||typeof makeAvatar!=="function")return;
+  const stars=[["吕布",112,36,"极"],["诸葛亮",40,110,"弓"],["关羽",106,90,"步"],
+               ["曹操",75,100,"骑"],["周瑜",62,108,"弓"],["赵云",105,90,"骑"]];
+  box.innerHTML=stars.map((x,i)=>`<div style="text-align:center">
+    <img class="avatar" src="${makeAvatar(x[0],x[1],x[2],x[3],i)}" style="width:56px;height:56px">
+    <div style="font-size:11px;letter-spacing:1px">${x[0]}</div></div>`).join("");
+});
+
+/* ================= 存档 ================= */
+function saveGame(){
+  try{ localStorage.setItem("sanguo_baye_save",JSON.stringify(S)); alert("已存档"); }
+  catch(e){ alert("存档失败："+e.message); }
+}
+function loadGame(){
+  const d=localStorage.getItem("sanguo_baye_save");
+  if(!d){ alert("无存档"); return; }
+  S=JSON.parse(d);
+  show("scr-map"); renderMap(); renderSide(); renderTop(); renderLog();
+  checkEnd();
+}
+</script>
+</body>
+</html>

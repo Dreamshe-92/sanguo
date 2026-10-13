@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>三国霸业 · Phaser 像素重制版</title>
+<style>
+  html,body{height:100%;margin:0;background:#120e0a;overflow:hidden;}
+  body{
+    display:flex;align-items:center;justify-content:center;
+    font-family:"SimSun","宋体",monospace;color:#c7ae83;
+  }
+  #game{
+    width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 40%, #241c12 0%, #0d0a07 75%);
+    box-shadow:inset 0 0 120px rgba(0,0,0,.9);
+  }
+  /* 画布已是 2 倍分辨率，交由浏览器平滑缩放到窗口，避免最近邻硬放大导致文字锯齿 */
+  canvas{image-rendering:auto;box-shadow:0 0 0 3px #4a3826, 0 14px 40px rgba(0,0,0,.75);}
+  #hint{
+    position:fixed;left:10px;bottom:8px;font-size:11px;color:#5a4a34;letter-spacing:1px;
+    pointer-events:none;user-select:none;
+  }
+</style>
+</head>
+<body>
+  <div id="game"></div>
+  <div id="hint">三国霸业 · Phaser 3 像素重制　|　鼠标点击操作　|　滚轮滚动列表</div>
+
+  <script src="vendor/phaser.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/art.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/flow.js"></script>
+  <script src="js/scene-boot.js"></script>
+  <script src="js/scene-title.js"></script>
+  <script src="js/scene-select.js"></script>
+  <script src="js/scene-map.js"></script>
+  <script src="js/scene-city.js"></script>
+  <script src="js/scene-battle.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

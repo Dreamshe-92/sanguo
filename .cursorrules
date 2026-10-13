@@ -1,0 +1,34 @@
+# Cursor Rules
+
+本项目的完整协作约定见 [AGENT.md](./AGENT.md)，以下为硬性规则摘要。
+
+## 项目
+网页复刻《三国霸业》（Phaser 3 / 零构建 / 无 npm 运行时依赖 / file:// 双击可玩）。
+主线代码目录：`sanguo-baye/phaser/`。
+
+## 硬约束
+1. `js/core.js` 是纯规则层，**禁止引用 Phaser 或 DOM**；要提示用 `this.emit("toast", {...})`。
+2. 布局只用逻辑坐标 **1152×720**（`LW/LH`），**禁止** `this.scale.width/height`；相机已统一 zoom=2。
+3. 新增 js 文件必须加到 `phaser/index.html` 的 script 列表（无打包器）。
+4. 不引入构建工具、不引入运行时 npm 依赖。
+5. 改动 `data.js` 必须同步 `docs/DATA.md` 与 `PROGRESS.md`。
+
+## 依赖方向
+`data.js → core.js → art/ui/flow.js → scene-*.js → main.js`，只能向下依赖。
+
+## 改完必跑
+```bash
+cd sanguo-baye/phaser
+node smoke.js && node strat-test.js && node duel-test.js
+# UI 改动另跑（需先 python -m http.server 8157）：
+node e2e.js
+```
+
+## 已知坑
+- Phaser `GeometryMask` 不随容器变换 → 列表遮罩要把 shape 留在场景根并手动 `syncMask()`。
+- 列表行在可视区外仍可点 → 必须接入 `ui.js` 的 `hitOK/syncHits`。
+- 小字下缘被裁 → 文本一律走 `UI.txt`（内置 `padding:{x:1,y:4}`）。
+- `captureGen()` 不置 `dead`，生擒要手动置。
+- 测试循环中战场状态必须逐轮复位。
+
+详见 AGENT.md §6。

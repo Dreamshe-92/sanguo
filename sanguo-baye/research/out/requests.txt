@@ -1,0 +1,17 @@
+https://baye.bbkgames.com/pc.html?name=%E4%B8%89%E5%9B%BD%E9%9C%B8%E4%B8%9A-%E8%AF%8D%E5%85%B8%E5%8E%9F%E7%89%88
+https://baye.bbkgames.com/css/flex.css
+https://baye.bbkgames.com/css/baye.css
+https://baye.bbkgames.com/js/jquery.min.js
+https://baye.bbkgames.com/js/encoding-indexes.js
+https://baye.bbkgames.com/js/encoding.js
+https://baye.bbkgames.com/js/sprintf.js
+https://baye.bbkgames.com/js/lzma_worker-min.js
+https://baye.bbkgames.com/js/base64.js
+https://baye.bbkgames.com/qr.png
+https://baye.bbkgames.com/js/idbkvstore.min.js?ver=20260329
+https://baye.bbkgames.com/js/bridge.js?ver=20260329
+https://baye.bbkgames.com/js/lcd.js?ver=20260329
+https://baye.bbkgames.com/js/baye.js?ver=20260329
+https://hm.baidu.com/hm.js?55cdc246d0c836cecfdf39ce0d5657f3
+https://baye.bbkgames.com/js/baye.wasm
+https://hm.baidu.com/hm.gif?hca=FF7A2498DB9A6258&cc=1&ck=1&cl=24-bit&ds=1280x800&vl=800&et=0&ja=0&ln=en-gb&lo=0&rnd=577642497&si=55cdc246d0c836cecfdf39ce0d5657f3&v=1.3.2&lv=1&sn=49874&r=0&ww=1280&u=https%3A%2F%2Fbaye.bbkgames.com%2Fpc.html%3Fname%3D%25E4%25B8%2589%25E5%259B%25BD%25E9%259C%25B8%25E4%25B8%259A-%25E8%25AF%258D%25E5%2585%25B8%25E5%258E%259F%25E7%2589%2588&tt=%E4%B8%89%E5%9B%BD%E9%9C%B8%E4%B8%9A

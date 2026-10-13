@@ -1,0 +1,12 @@
+https://baye.bbkgames.com/js/jquery.min.js
+https://baye.bbkgames.com/js/encoding-indexes.js
+https://baye.bbkgames.com/js/encoding.js
+https://baye.bbkgames.com/js/sprintf.js
+https://baye.bbkgames.com/js/lzma_worker-min.js
+https://baye.bbkgames.com/js/base64.js
+https://baye.bbkgames.com/qr.png
+https://baye.bbkgames.com/js/idbkvstore.min.js?ver=20260329
+https://baye.bbkgames.com/js/bridge.js?ver=20260329
+https://baye.bbkgames.com/js/lcd.js?ver=20260329
+https://baye.bbkgames.com/js/baye.js?ver=20260329
+https://hm.baidu.com/hm.js?55cdc246d0c836cecfdf39ce0d5657f3

@@ -1,0 +1,20 @@
+# ── 依赖 ────────────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ── 本地工作区 / Agent 私有数据（含记忆日志，不公开）──
+.workbuddy/
+*.log
+.DS_Store
+Thumbs.db
+
+# ── 冗余大件：内容已完整解压在 research/baye-sanguo/ 中，删之无损 ──
+**/baye-sanguo.zip
+
+# ── 第三方解包工程（字体/wasm/ROM，约 118MB）──
+# 不进 main 分支，单独放在 research-assets 分支，避免主仓库臃肿与首次克隆过慢
+sanguo-baye/research/baye-sanguo/
+
+# ── 运行时产物 ──────────────────────────────────────
+research/out/tmp/
+*.bak
