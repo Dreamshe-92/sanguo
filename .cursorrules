@@ -31,4 +31,4 @@ node e2e.js
 - `captureGen()` 不置 `dead`，生擒要手动置。
 - 测试循环中战场状态必须逐轮复位。
 
-详见 AGENT.md §6。
+详见 AGENT.md §7。

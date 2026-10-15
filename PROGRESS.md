@@ -42,9 +42,14 @@
 
 ### 本轮（2026-10-13）· 仓库化
 
-- 建立 git 仓库，编写 `AGENT.md` / `README.md` / `PROGRESS.md` / `docs/*`
-- 配置 `.gitignore`（排除 `node_modules/`、`.workbuddy/`、54M 冗余 zip）
-- 增加多 Agent 协作指针文件：`CLAUDE.md` / `.cursorrules` / `GEMINI.md`
+- 建立 git 仓库并推送到 **https://github.com/Dreamshe-92/sanguo**（公开）
+- 分支策略：
+  - `main` —— 游戏本体 + 全部文档 + research 轻量资料（96 文件 / 约 6MB）
+  - `research-assets` —— 第三方解包原版工程（`research/baye-sanguo/`，约 118MB / 推送实际 50MiB）
+- 编写协作文档：`AGENT.md`（多 Agent 权威说明）、`README.md`、`PROGRESS.md`、`docs/{ARCHITECTURE,DATA,TESTING,ROADMAP}.md`
+- 多 Agent 指针文件：`CLAUDE.md` / `.cursorrules` / `GEMINI.md`（统一指向 `AGENT.md`）
+- `.gitignore` 排除：`node_modules/`、`.workbuddy/`、54M 冗余 zip、`research/baye-sanguo/`（大件走独立分支）
+- 环境备注：本机 `github.com:443` 需经代理 `127.0.0.1:7897`，已在仓库 `.git/config` 配好 `http.proxy`
 
 ---
 
@@ -91,7 +96,7 @@
 
 新 Agent 接手时按顺序确认：
 
-- [ ] 读过 `AGENT.md`（尤其 §4 坐标系与 §6 坑位清单）
+- [ ] 读过 `AGENT.md`（尤其 §5 坐标系与 §7 坑位清单）
 - [ ] 跑通 `node smoke.js && node strat-test.js && node duel-test.js`
 - [ ] 起服务跑一次 `node e2e.js`，确认 0 console 错误
 - [ ] 确认要改的文件没有别人正在动（看本文件"当前状态"）

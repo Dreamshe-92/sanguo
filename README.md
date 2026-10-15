@@ -60,6 +60,8 @@ sanguo-baye/
 └── research/        原版逆向资料与调研笔记
 ```
 
+**分支说明**：`main` 是默认分支（游戏本体 + 文档，约 6MB）；第三方解包的原版工程（约 118MB）在 `research-assets` 分支，日常开发不需要它。
+
 **给 AI Agent / 协作者**：请先读 [`AGENT.md`](AGENT.md)（架构约束与踩坑清单）、[`PROGRESS.md`](PROGRESS.md)（当前进度）、`docs/`（架构 / 数据字典 / 测试 / 路线图）。
 
 ---
